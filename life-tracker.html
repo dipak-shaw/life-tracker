@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Life Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0f0f0f;--surface:#181818;--surface2:#222;--surface3:#2a2a2a;
+  --border:#2e2e2e;--border2:#3a3a3a;
+  --text:#f0ede8;--text2:#9a9690;--text3:#5a5652;
+  --green:#4ade80;--green-dim:#1a3a27;
+  --red:#f87171;--red-dim:#3a1a1a;
+  --amber:#fbbf24;--amber-dim:#3a2a00;
+  --blue:#60a5fa;--blue-dim:#1a2a3a;
+  --accent:#c8b89a;
+  --personal:#a78bfa;--health:#4ade80;--wealth:#fbbf24;
+  --travel:#60a5fa;--branding:#fb923c;--content:#f472b6;
+  --r:10px;--r2:14px;
+  --font-head:'DM Serif Display',Georgia,serif;
+  --font:'DM Sans',-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+button{cursor:pointer;border:none;background:none;font-family:var(--font);color:var(--text)}
+input,textarea,select{font-family:var(--font);color:var(--text);background:none;border:none;outline:none}
+textarea{resize:none}
+input::placeholder,textarea::placeholder{color:var(--text3)}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+
+/* LAYOUT */
+.app{max-width:920px;margin:0 auto;padding:28px 20px 60px}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:500;color:var(--text2);background:var(--surface);transition:all .15s}
+.back-btn:hover{border-color:var(--accent);color:var(--text)}
+.page-title{font-family:var(--font-head);font-size:28px;flex:1;letter-spacing:-.01em}
+.stat-pill{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:500}
+.stat-g{background:var(--green-dim);color:var(--green)}
+.stat-r{background:var(--red-dim);color:var(--red)}
+.stat-pct{color:var(--text2);font-size:12px;font-weight:500}
+
+/* SECTION LABEL */
+.sec-label{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:12px}
+
+/* HOME — year grid */
+.home-hero{margin-bottom:28px}
+.home-hero h1{font-family:var(--font-head);font-size:36px;color:var(--text);margin-bottom:4px}
+.home-hero p{color:var(--text2);font-size:13px}
+.year-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:10px}
+.year-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:18px 16px;cursor:pointer;transition:all .18s}
+.year-card:hover{border-color:var(--border2);background:var(--surface2);transform:translateY(-1px)}
+.year-card.now{background:var(--blue-dim);border-color:var(--blue);border-width:1.5px}
+.year-card .yn{font-family:var(--font-head);font-size:26px;color:var(--text);margin-bottom:2px}
+.year-card.now .yn{color:var(--blue)}
+.year-card .ym{font-size:11px;color:var(--text3);margin-bottom:10px}
+.pbar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.pfill{height:3px;background:var(--green);border-radius:2px;transition:width .4s}
+
+/* YEAR VIEW */
+.goal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:8px;margin-bottom:28px}
+.goal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;transition:border-color .15s}
+.goal-card:focus-within{border-color:var(--border2)}
+.goal-card .gc-label{font-size:11px;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.goal-card textarea{width:100%;font-size:12px;color:var(--text);line-height:1.4;rows:2}
+.goal-card textarea::placeholder{color:var(--text3);font-style:italic}
+
+.sem-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sem-label{font-size:14px;font-weight:600;color:var(--text)}
+.sem-meta{font-size:11px;color:var(--text3)}
+.month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:28px}
+.month-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 10px;cursor:pointer;text-align:center;transition:all .15s}
+.month-card:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px)}
+.month-card.mnow{background:var(--blue-dim);border-color:var(--blue)}
+.month-card .mn{font-size:13px;font-weight:500;margin-bottom:4px}
+.month-card.mnow .mn{color:var(--blue)}
+.month-card .mp{font-size:10px;color:var(--text3);margin-bottom:7px}
+
+/* SUMMARY BOX */
+.sum-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px}
+.sum-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px;text-align:center}
+.sum-num{font-family:var(--font-head);font-size:28px}
+.sum-lbl{font-size:10px;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+.cbar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.cbar-name{font-size:11px;color:var(--text2);width:72px}
+.cbar-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.cbar-fill{height:4px;border-radius:2px;transition:width .4s}
+.cbar-pct{font-size:11px;color:var(--text3);width:30px;text-align:right}
+
+/* MONTH VIEW */
+.mg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:18px}
+.mg-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:border-color .15s}
+.mg-card:focus-within{border-color:var(--border2)}
+.mg-cat{font-size:10px;color:var(--text3);margin-bottom:5px}
+.mg-card input{width:100%;font-size:11px;color:var(--text)}
+
+/* CALENDAR */
+.cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:16px}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border)}
+.cal-head div{text-align:center;padding:8px 0;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em}
+.cal-body{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{min-height:56px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;cursor:pointer;transition:background .12s;position:relative}
+.cal-cell:hover{background:var(--surface2)}
+.cal-cell.today{background:var(--blue-dim)}
+.cal-cell.sel{background:var(--amber-dim)}
+.cal-cell.empty{background:var(--surface);cursor:default;opacity:.3}
+.cal-cell:hover.empty{background:var(--surface)}
+.cal-dn{font-size:11px;font-weight:500;color:var(--text2)}
+.cal-dn.tdn{color:var(--blue);font-weight:700}
+.cal-dn.sdn{color:var(--amber)}
+.cal-tc{font-size:9px;margin-top:1px}
+.cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
+.cal-dot{width:5px;height:5px;border-radius:50%}
+
+/* DAY PANEL */
+.day-panel{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);padding:18px;margin-bottom:14px}
+.day-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.gcal-btn{font-size:10px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:4px 9px;color:var(--text2);display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.gcal-btn:hover{color:var(--text);border-color:var(--accent)}
+.task-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.task-row:last-of-type{border-bottom:none}
+.task-text{flex:1;font-size:12px;color:var(--text)}
+.task-text.done{text-decoration:line-through;color:var(--text3)}
+.task-time{font-size:10px;color:var(--text3)}
+.task-carried{font-size:9px;background:var(--amber-dim);color:var(--amber);border-radius:3px;padding:1px 6px;flex-shrink:0}
+.task-cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.task-del{font-size:12px;color:var(--text3);padding:0 3px;transition:color .12s}
+.task-del:hover{color:var(--red)}
+.no-tasks{font-size:12px;color:var(--text3);padding:4px 0 8px;font-style:italic}
+
+.add-row{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.add-select,.add-inp,.add-time{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 9px;font-size:11px;color:var(--text);font-family:var(--font);transition:border-color .15s}
+.add-select:focus,.add-inp:focus,.add-time:focus{border-color:var(--border2);outline:none}
+.add-inp{flex:1;min-width:90px}
+.add-inp::placeholder{color:var(--text3)}
+.add-time{width:96px}
+.add-btn{background:var(--green-dim);color:var(--green);border:1px solid var(--green-dim);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:600;transition:all .15s}
+.add-btn:hover{background:var(--green);color:#0f0f0f}
+.carry-btn{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-dim);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:500;transition:all .15s}
+.carry-btn:hover{background:var(--amber);color:#0f0f0f}
+
+/* UTILITY */
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+.badge{display:inline-block;font-size:9px;border-radius:3px;padding:1px 5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.app-inner{animation:fadein .2s ease}
+</style>
+</head>
+<body>
+<div class="app"><div id="root"></div></div>
+<script>
+const CATS=[
+  {id:'personal',label:'Personal',icon:'👤',color:'var(--personal)'},
+  {id:'health',label:'Health',icon:'💪',color:'var(--health)'},
+  {id:'wealth',label:'Wealth',icon:'💰',color:'var(--wealth)'},
+  {id:'travel',label:'Travel',icon:'✈️',color:'var(--travel)'},
+  {id:'branding',label:'Branding',icon:'⭐',color:'var(--branding)'},
+  {id:'content',label:'Content',icon:'✏️',color:'var(--content)'},
+];
+const MOS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MFULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
+const TODAY=new Date();
+const TY=TODAY.getFullYear(),TM=TODAY.getMonth(),TD=TODAY.getDate();
+const YEARS=Array.from({length:10},(_,i)=>TY-2+i);
+const SK='lft_gh_v1';
+
+function dk(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+function mk(y,m){return y+'-'+String(m+1).padStart(2,'0')}
+function daysIn(y,m){return new Date(y,m+1,0).getDate()}
+function firstDay(y,m){return new Date(y,m,1).getDay()}
+function mkeys(y,m){return Array.from({length:daysIn(y,m)},(_,i)=>dk(y,m,i+1))}
+function ykeys(y){let k=[];for(let m=0;m<12;m++)k=[...k,...mkeys(y,m)];return k}
+function stats(tasks,keys){
+  let tot=0,done=0,miss=0;
+  keys.forEach(k=>(tasks[k]||[]).forEach(t=>{tot++;if(t.done)done++;else if(!t.carried)miss++;}));
+  return{tot,done,miss,pct:tot?Math.round(done/tot*100):0};
+}
+function catStat(tasks,keys,cid){
+  const all=keys.flatMap(k=>(tasks[k]||[]).filter(t=>t.cat===cid));
+  const done=all.filter(t=>t.done).length;
+  return{tot:all.length,done,pct:all.length?Math.round(done/all.length*100):0};
+}
+
+// State
+let DATA={goals:{},tasks:{}};
+let VIEW='home';let VY=TY;let VM=TM;let SEL=null;
+let NT={cat:'health',title:'',time:''};
+
+function saveData(){try{localStorage.setItem(SK,JSON.stringify(DATA));}catch(e){}}
+function loadData(){try{const r=localStorage.getItem(SK);if(r)DATA=JSON.parse(r);}catch(e){}}
+
+function setGoal(key,cat,val){
+  if(!DATA.goals[key])DATA.goals[key]={};
+  DATA.goals[key][cat]=val;saveData();
+}
+function addTask(dkey,t){
+  if(!DATA.tasks[dkey])DATA.tasks[dkey]=[];
+  DATA.tasks[dkey].push({...t,id:Date.now()+Math.random(),done:false,carried:false});
+  saveData();render();
+}
+function toggleTask(dkey,id){
+  if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].map(t=>t.id===id?{...t,done:!t.done}:t);
+  saveData();render();
+}
+function delTask(dkey,id){
+  if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].filter(t=>t.id!==id);
+  saveData();render();
+}
+function carryFwd(){
+  const pd=new Date(TODAY);pd.setDate(pd.getDate()-1);
+  const fkey=dk(pd.getFullYear(),pd.getMonth(),pd.getDate());
+  const tkey=dk(TY,TM,TD);
+  const missed=(DATA.tasks[fkey]||[]).filter(t=>!t.done&&!t.carried);
+  if(!missed.length){alert('No missed tasks from yesterday to carry forward');return;}
+  missed.forEach(t=>{
+    if(!DATA.tasks[tkey])DATA.tasks[tkey]=[];
+    DATA.tasks[tkey].push({...t,id:Date.now()+Math.random(),carried:true,origDate:fkey,done:false});
+  });
+  DATA.tasks[fkey]=(DATA.tasks[fkey]||[]).map(t=>!t.done?{...t,carried:true}:t);
+  saveData();render();
+  alert('✓ Carried '+missed.length+' task(s) to today');
+}
+
+// Google Calendar URL generator
+function gcalUrl(title,date,time){
+  const [y,m,d]=[VY,VM+1,SEL];
+  let start,end;
+  if(time){
+    const [hh,mm]=time.split(':').map(Number);
+    const pad=n=>String(n).padStart(2,'0');
+    start=`${y}${pad(m)}${pad(d)}T${pad(hh)}${pad(mm)}00`;
+    end=`${y}${pad(m)}${pad(d)}T${pad(hh+1)}${pad(mm)}00`;
+  }else{
+    const pad=n=>String(n).padStart(2,'0');
+    start=`${y}${pad(m)}${pad(d)}`;
+    end=`${y}${pad(m)}${pad(Number(d)+1)}`;
+  }
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent('Life Tracker task')}&sf=true&output=xml`;
+}
+
+function render(){
+  if(VIEW==='home')renderHome();
+  else if(VIEW==='year')renderYear();
+  else if(VIEW==='month')renderMonth();
+}
+
+function renderHome(){
+  let h=`<div class="app-inner">
+  <div class="home-hero">
+    <h1>Life Tracker</h1>
+    <p style="color:var(--text2);font-size:13px;margin-top:2px">Your decade at a glance. Click a year to begin.</p>
+  </div>
+  <div class="sec-label">10-YEAR OVERVIEW</div>
+  <div class="year-grid">`;
+  YEARS.forEach(y=>{
+    const s=stats(DATA.tasks,ykeys(y));
+    const now=y===TY;
+    h+=`<div class="year-card${now?' now':''}" onclick="goYear(${y})">
+      <div class="yn">${y}</div>
+      <div class="ym">${s.tot?s.pct+'% · '+s.done+'/'+s.tot+' tasks':'No tasks yet'}</div>
+      <div class="pbar"><div class="pfill" style="width:${s.pct}%"></div></div>
+    </div>`;
+  });
+  h+=`</div></div>`;
+  document.getElementById('root').innerHTML=h;
+}
+
+function renderYear(){
+  const yg=DATA.goals[VY]||{};
+  const ys=stats(DATA.tasks,ykeys(VY));
+  let h=`<div class="app-inner">
+  <button class="back-btn" onclick="goHome()">← Back</button>
+  <div class="topbar">
+    <div class="page-title">${VY}</div>
+    <span class="stat-pill stat-g">✓ ${ys.done}</span>
+    <span class="stat-pill stat-r">✗ ${ys.miss}</span>
+    <span class="stat-pct">${ys.pct}%</span>
+  </div>
+  <div class="sec-label">YEAR GOALS</div>
+  <div class="goal-grid">`;
+  CATS.forEach(c=>{
+    const v=(yg[c.id]||'').replace(/"/g,'&quot;');
+    h+=`<div class="goal-card">
+      <div class="gc-label" style="color:${c.color}">${c.icon} ${c.label}</div>
+      <textarea rows="2" placeholder="Set goal…" onblur="setGoal('${VY}','${c.id}',this.value)">${v}</textarea>
+    </div>`;
+  });
+  h+=`</div>`;
+  [0,1].forEach(s=>{
+    const mos=Array.from({length:6},(_,i)=>i+s*6);
+    const ss=stats(DATA.tasks,mos.flatMap(m=>mkeys(VY,m)));
+    h+=`<div class="sem-row"><span class="sem-label">S${s+1} — ${s===0?'Jan–Jun':'Jul–Dec'}</span><span class="sem-meta">• ${ss.pct}% · ${ss.done}/${ss.tot} tasks</span></div>
+    <div class="month-grid">`;
+    mos.forEach(m=>{
+      const ms=stats(DATA.tasks,mkeys(VY,m));
+      const now=VY===TY&&m===TM;
+      h+=`<div class="month-card${now?' mnow':''}" onclick="goMonth(${m})">
+        <div class="mn">${MOS[m]}</div>
+        <div class="mp">${ms.tot?ms.pct+'%':'–'}</div>
+        <div class="pbar"><div class="pfill" style="width:${ms.pct}%"></div></div>
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+  h+=`<div class="sec-label" style="margin-top:8px">YEAR SUMMARY</div>
+  <div class="sum-box">
+    <div class="sum-nums">
+      <div><div class="sum-num">${ys.tot}</div><div class="sum-lbl">Total</div></div>
+      <div><div class="sum-num" style="color:var(--green)">${ys.done}</div><div class="sum-lbl">Done</div></div>
+      <div><div class="sum-num" style="color:var(--red)">${ys.miss}</div><div class="sum-lbl">Missed</div></div>
+      <div><div class="sum-num">${ys.pct}%</div><div class="sum-lbl">Goal %</div></div>
+    </div>`;
+  CATS.forEach(c=>{
+    const cs=catStat(DATA.tasks,ykeys(VY),c.id);
+    if(!cs.tot)return;
+    h+=`<div class="cbar-row">
+      <span class="cbar-name">${c.icon} ${c.label}</span>
+      <div class="cbar-track"><div class="cbar-fill" style="width:${cs.pct}%;background:${c.color}"></div></div>
+      <span class="cbar-pct">${cs.pct}%</span>
+    </div>`;
+  });
+  h+=`</div></div>`;
+  document.getElementById('root').innerHTML=h;
+}
+
+function renderMonth(){
+  const mgk=mk(VY,VM);
+  const mg=DATA.goals[mgk]||{};
+  const ms=stats(DATA.tasks,mkeys(VY,VM));
+  const total=daysIn(VY,VM),first=firstDay(VY,VM);
+  const dkey=SEL?dk(VY,VM,SEL):null;
+  const dayTasks=dkey?(DATA.tasks[dkey]||[]):[];
+
+  let h=`<div class="app-inner">
+  <button class="back-btn" onclick="goYear(${VY})">← ${VY}</button>
+  <div class="topbar">
+    <div class="page-title">${MFULL[VM]} ${VY}</div>
+    <button class="carry-btn" onclick="carryFwd()">↺ Carry fwd</button>
+    <span class="stat-pill stat-g">✓ ${ms.done}</span>
+    <span class="stat-pill stat-r">✗ ${ms.miss}</span>
+    <span class="stat-pct">${ms.pct}%</span>
+  </div>
+  <div class="sec-label">MONTH GOALS</div>
+  <div class="mg-grid">`;
+  CATS.forEach(c=>{
+    const v=(mg[c.id]||'').replace(/"/g,'&quot;');
+    h+=`<div class="mg-card">
+      <div class="mg-cat" style="color:${c.color}">${c.icon} ${c.label}</div>
+      <input type="text" value="${v}" placeholder="Set goal…" onblur="setGoal('${mgk}','${c.id}',this.value)"/>
+    </div>`;
+  });
+  h+=`</div>`;
+
+  // Calendar
+  h+=`<div class="cal-wrap"><div class="cal-head">`;
+  DAYS.forEach(d=>{h+=`<div>${d}</div>`;});
+  h+=`</div><div class="cal-body">`;
+  for(let e=0;e<first;e++)h+=`<div class="cal-cell empty"></div>`;
+  for(let d=1;d<=total;d++){
+    const dk2=dk(VY,VM,d);
+    const dt=DATA.tasks[dk2]||[];
+    const done=dt.filter(t=>t.done).length;
+    const isT=VY===TY&&VM===TM&&d===TD;
+    const isSel=SEL===d;
+    const hasMiss=dt.some(t=>!t.done&&!t.carried);
+    const dots=CATS.filter(c=>dt.some(t=>t.cat===c.id)).map(c=>`<div class="cal-dot" style="background:${c.color}"></div>`).join('');
+    const dnClass='cal-dn'+(isT?' tdn':isSel?' sdn':'');
+    h+=`<div class="cal-cell${isSel?' sel':isT?' today':''}" onclick="selDay(${d})">
+      <div class="${dnClass}">${d}</div>
+      ${dt.length?`<div class="cal-tc" style="color:${hasMiss?'var(--red)':'var(--green)'}">${done}/${dt.length}</div>`:''}
+      <div class="cal-dots">${dots}</div>
+    </div>`;
+  }
+  h+=`</div></div>`;
+
+  // Day panel
+  if(SEL){
+    h+=`<div class="day-panel">
+    <div class="day-title">
+      <span>${MFULL[VM]} ${SEL}</span>
+      <button class="gcal-btn" onclick="openGcalDay()">📅 Add to Google Calendar</button>
+    </div>`;
+    if(!dayTasks.length)h+=`<div class="no-tasks">No tasks yet — add one below.</div>`;
+    dayTasks.forEach(t=>{
+      const cat=CATS.find(c=>c.id===t.cat)||{color:'var(--text3)'};
+      h+=`<div class="task-row">
+        <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${dkey}','${t.id}')"/>
+        <span class="task-text${t.done?' done':''}">${t.title}</span>
+        ${t.time?`<span class="task-time">⏰ ${t.time}</span>`:''}
+        ${t.carried?`<span class="task-carried">carried</span>`:''}
+        <div class="task-cdot" style="background:${cat.color}"></div>
+        <button class="task-del" onclick="delTask('${dkey}','${t.id}')" title="Delete">✕</button>
+      </div>`;
+    });
+    const catOpts=CATS.map(c=>`<option value="${c.id}"${NT.cat===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
+    h+=`<div class="add-row">
+      <select class="add-select" onchange="NT.cat=this.value">${catOpts}</select>
+      <input class="add-inp" id="nt" type="text" placeholder="Task title…" value="${NT.title}" oninput="NT.title=this.value" onkeydown="if(event.key==='Enter')doAdd()"/>
+      <input class="add-time" id="ntm" type="time" value="${NT.time}" oninput="NT.time=this.value"/>
+      <button class="add-btn" onclick="doAdd()">+ Add</button>
+    </div></div>`;
+  }
+
+  // Month summary
+  h+=`<div class="sec-label" style="margin-top:4px">MONTH SUMMARY</div>
+  <div class="sum-box">
+    <div class="sum-nums">
+      <div><div class="sum-num">${ms.tot}</div><div class="sum-lbl">Total</div></div>
+      <div><div class="sum-num" style="color:var(--green)">${ms.done}</div><div class="sum-lbl">Done</div></div>
+      <div><div class="sum-num" style="color:var(--red)">${ms.miss}</div><div class="sum-lbl">Missed</div></div>
+      <div><div class="sum-num">${ms.pct}%</div><div class="sum-lbl">Goal %</div></div>
+    </div>`;
+  CATS.forEach(c=>{
+    const cs=catStat(DATA.tasks,mkeys(VY,VM),c.id);
+    if(!cs.tot)return;
+    h+=`<div class="cbar-row">
+      <span class="cbar-name">${c.icon} ${c.label}</span>
+      <div class="cbar-track"><div class="cbar-fill" style="width:${cs.pct}%;background:${c.color}"></div></div>
+      <span class="cbar-pct">${cs.pct}%</span>
+    </div>`;
+  });
+  h+=`</div></div>`;
+  document.getElementById('root').innerHTML=h;
+}
+
+function goHome(){VIEW='home';SEL=null;render();}
+function goYear(y){VY=y;VIEW='year';SEL=null;render();}
+function goMonth(m){VM=m;VIEW='month';SEL=null;render();}
+function selDay(d){SEL=SEL===d?null:d;render();}
+function doAdd(){
+  if(!NT.title.trim()||!SEL)return;
+  addTask(dk(VY,VM,SEL),{cat:NT.cat,title:NT.title.trim(),time:NT.time});
+  NT.title='';NT.time='';
+}
+function openGcalDay(){
+  if(!SEL)return;
+  const url=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(MFULL[VM]+' '+SEL+' Tasks')}&dates=${VY}${String(VM+1).padStart(2,'0')}${String(SEL).padStart(2,'0')}/${VY}${String(VM+1).padStart(2,'0')}${String(SEL+1).padStart(2,'0')}&sf=true&output=xml`;
+  window.open(url,'_blank');
+}
+
+loadData();render();
+</script>
+</body>
+</html>
