@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Life Tracker</title>
+<meta name="author" content="Dipak Shaw"/>
+<meta name="description" content="A single-file life tracker for 10-year goal planning. Built and designed by Dipak Shaw. Stores data locally with optional Google Drive sync."/>
+<meta name="theme-color" content="#0f0f0f"/>
+<meta property="og:title" content="Life Tracker"/>
+<meta property="og:description" content="A single-file life tracker for 10-year goal planning by Dipak Shaw."/>
+<meta property="og:type" content="website"/>
 <style>
 :root{--bg:#0f0f0f;--sf:#181818;--sf2:#222;--bd:#2e2e2e;--bd2:#3a3a3a;--tx:#f0ede8;--tx2:#9a9690;--tx3:#5a5652;--gr:#4ade80;--gd:#1a3a27;--rd:#f87171;--rdd:#3a1a1a;--am:#fbbf24;--amd:#3a2a00;--bl:#60a5fa;--bld:#1a2a3a;--r:10px}
 body.light{--bg:#f5f4f0;--sf:#ffffff;--sf2:#f0eeea;--bd:#e0ddd8;--bd2:#c8c4be;--tx:#1a1a1a;--tx2:#6a6660;--tx3:#aaa8a4;--gd:#d4f7e4;--rdd:#fde8e8;--amd:#fff8e0;--bld:#e8f0ff}
@@ -85,8 +91,7 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointe
 .gbtn{font-size:11px;border:1px solid var(--bd2);border-radius:6px;padding:4px 10px;background:var(--sf2);color:var(--tx);cursor:pointer}
 .gbtn:hover{border-color:var(--tx2)}
 </style>
-<script src="https://apis.google.com/js/api.js?onload=initGapi"></script>
-<script src="https://accounts.google.com/gsi/client?callback=initGis" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div id="toolbar" style="position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--sf);border-bottom:1px solid var(--bd);flex-wrap:wrap">
@@ -103,144 +108,262 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointe
   <button class="gbtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
 </div>
 <div class="app"><div id="R"></div></div>
+<footer style="max-width:960px;margin:24px auto 32px;padding:16px;text-align:center;font-size:11px;color:var(--tx3);border-top:1px solid var(--bd)">
+  Built by <a href="https://github.com/dipakshaw" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-weight:600">Dipak Shaw</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/dipakshaw/life-tracker" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none">Source on GitHub</a>
+  &nbsp;·&nbsp;
+  <span>MIT License © 2026</span>
+</footer>
 <script>
-// ── GOOGLE DRIVE SYNC ──────────────────────────────────────────
-const CLIENT_ID='853038975975-1akjuk1dl0djt4keualqbjgr7ohe0fad.apps.googleusercontent.com'; // ← Replace with your OAuth Client ID
-const SCOPES='https://www.googleapis.com/auth/drive.appdata';
-const FILE_NAME='life-tracker-data.json';
-let tokenClient=null,gapiReady=false,gisReady=false;
-let driveFileId=null,syncStatus='offline',syncUser='';
+// ══ GOOGLE DRIVE SYNC — CONFIGURATION ════════════════════════════════════════════════════
+// To enable Google Drive sync across devices you need a free OAuth 2.0 Client ID.
+// Full step-by-step setup is in README.md. TL;DR:
+//   1. https://console.cloud.google.com/  → create a project
+//   2. APIs & Services → Library → enable "Google Drive API"
+//   3. OAuth consent screen → External → add yourself as a Test User
+//   4. Credentials → Create OAuth Client ID → Web application
+//      Authorized JavaScript origins:
+//        http://localhost:8080
+//        https://YOUR-USERNAME.github.io
+//   5. Paste the generated Client ID below (or override at runtime — see below).
+//
+// Three ways to provide the Client ID, checked in this order:
+//   (a) URL query param   —  ?client_id=XXX.apps.googleusercontent.com
+//   (b) localStorage      —  localStorage.setItem('lft_client_id','XXX...')
+//   (c) the constant below
+// This lets one published file work for many users without editing code.
+// ════════════════════════════════════════════════════════════════════════════════════════
+const DEFAULT_CLIENT_ID='853038975975-1akjuk1dl0djt4keualqbjgr7ohe0fad.apps.googleusercontent.com';
+const PLACEHOLDER='YOUR_GOOGLE_CLIENT_ID';
 
+function resolveClientId(){
+  try{
+    const p=new URLSearchParams(location.search).get('client_id');
+    if(p&&p.trim())return p.trim();
+  }catch(e){}
+  const ls=localStorage.getItem('lft_client_id');
+  if(ls&&ls.trim())return ls.trim();
+  return DEFAULT_CLIENT_ID;
+}
+let CLIENT_ID=resolveClientId();
+const SCOPES='https://www.googleapis.com/auth/drive.appdata';
+const FNAME='life-tracker-data.json';
+let _token=null,_fileId=null,_timer=null,_user='';
+
+function isCfg(){return CLIENT_ID&&CLIENT_ID!==PLACEHOLDER;}
+
+function setClientId(id){
+  if(!id||!id.trim()){localStorage.removeItem('lft_client_id');CLIENT_ID=DEFAULT_CLIENT_ID;}
+  else{localStorage.setItem('lft_client_id',id.trim());CLIENT_ID=id.trim();}
+  setToken(null);_fileId=null;_user='';localStorage.removeItem('lft_user');
+  hideSetupPanel();renderAuthBar();
+}
+
+// ── Token helpers ──
+function getToken(){return _token||localStorage.getItem('lft_token');}
+function setToken(t){_token=t;if(t)localStorage.setItem('lft_token',t);else localStorage.removeItem('lft_token');}
+
+// ── Status bar ──
 function setSyncStatus(s,msg){
-  syncStatus=s;
   const dot=document.getElementById('sd');
   const lbl=document.getElementById('sl2');
-  if(dot)dot.className='sync-dot sync-'+s;
+  const cls={'ok':'sync-ok','err':'sync-err','spin':'sync-spin','offline':'sync-err'}[s]||'sync-err';
+  if(dot){dot.className='sync-dot '+cls;}
   if(lbl)lbl.textContent=msg||s;
 }
 
-function initGapi(){
-  gapi.load('client',async()=>{
-    try{
-      await gapi.client.init({discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
-      gapiReady=true;
-      if(gisReady&&localStorage.getItem('lft_gdrive_token'))tryAutoLogin();
-      else renderAuthBar();
-// Set correct theme icon
-const _tl=document.body.classList.contains('light');
-const _tb=document.querySelector('#toolbar button[title="Toggle theme"]');
-if(_tb)_tb.textContent=_tl?'🌙':'☀️';
-    }catch(e){console.error('GAPI init error',e);setSyncStatus('err','API init failed');}
-  });
-}
-function initGis(){
-  if(CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID'){console.warn('Set your CLIENT_ID');return;}
-  try{
-    tokenClient=google.accounts.oauth2.initTokenClient({
-      client_id:CLIENT_ID,scope:SCOPES,
-      callback:async(resp)=>{
-        if(resp.error){setSyncStatus('err','Auth error: '+resp.error);renderAuthBar();return;}
-        gapi.client.setToken({access_token:resp.access_token});
-        localStorage.setItem('lft_gdrive_token',resp.access_token);
-        await fetchUserInfo(resp.access_token);
-        await loadFromDrive();
-        renderAuthBar();
-      }
-    });
-    gisReady=true;
-    if(gapiReady&&localStorage.getItem('lft_gdrive_token'))tryAutoLogin();
-    else renderAuthBar();
-  }catch(e){console.error('GIS init error',e);}
-}
-async function fetchUserInfo(token){
-  try{
-    const r=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}});
-    const d=await r.json();
-    syncUser=d.email||d.name||'Signed in';
-    localStorage.setItem('lft_gdrive_user',syncUser);
-  }catch(e){syncUser=localStorage.getItem('lft_gdrive_user')||'Signed in';}
-}
-function tryAutoLogin(){
-  const t=localStorage.getItem('lft_gdrive_token');
-  if(!t){setSyncStatus('offline','Not connected');renderAuthBar();return;}
-  gapi.client.setToken({access_token:t});
-  syncUser=localStorage.getItem('lft_gdrive_user')||'';
-  renderAuthBar();
-  loadFromDrive();
-}
-function signIn(){if(tokenClient)tokenClient.requestAccessToken();}
-function signOut(){
-  const t=localStorage.getItem('lft_gdrive_token');
-  if(t)google.accounts.oauth2.revoke(t,()=>{});
-  localStorage.removeItem('lft_gdrive_token');localStorage.removeItem('lft_gdrive_user');
-  gapi.client.setToken(null);syncUser='';driveFileId=null;
-  setSyncStatus('offline','Signed out');renderAuthBar();
+// ── Drive REST helper (plain fetch, no gapi needed) ──
+async function dfetch(url,opts){
+  const tk=getToken();if(!tk)return null;
+  const h={'Authorization':'Bearer '+tk,...(opts.headers||{})};
+  const r=await fetch(url,{...opts,headers:h});
+  if(r.status===401){handleExpired();return null;}
+  return r;
 }
 
-async function findOrCreateFile(){
-  // Search in appDataFolder
-  const r=await gapi.client.drive.files.list({spaces:'appDataFolder',q:`name='${FILE_NAME}'`,fields:'files(id,name)'});
-  const files=r.result.files;
-  if(files&&files.length)return files[0].id;
-  // Create new
-  const cr=await gapi.client.request({path:'/drive/v3/files',method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:FILE_NAME,parents:['appDataFolder']})});
-  return cr.result.id;
+function handleExpired(){
+  setToken(null);setSyncStatus('err','Session expired - reconnect');renderAuthBar();
+}
+
+async function findFile(){
+  const r=await dfetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'+FNAME+'%27&fields=files(id)',{method:'GET'});
+  if(!r)return null;
+  const d=await r.json();
+  return d.files&&d.files.length?d.files[0].id:null;
+}
+
+async function createFile(){
+  const r=await dfetch('https://www.googleapis.com/drive/v3/files',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:FNAME,parents:['appDataFolder']})
+  });
+  if(!r)return null;
+  const d=await r.json();return d.id;
+}
+
+async function ensureFileId(){
+  if(_fileId)return _fileId;
+  _fileId=await findFile();
+  if(!_fileId)_fileId=await createFile();
+  return _fileId;
 }
 
 async function saveToDrive(){
-  if(!gapiReady||!localStorage.getItem('lft_gdrive_token'))return;
+  if(!isCfg()||!getToken())return;
   setSyncStatus('spin','Saving…');
   try{
-    if(!driveFileId)driveFileId=await findOrCreateFile();
-    const content=JSON.stringify(DATA);
-    await gapi.client.request({
-      path:`/upload/drive/v3/files/${driveFileId}?uploadType=media`,
-      method:'PATCH',headers:{'Content-Type':'application/json'},body:content
+    const fid=await ensureFileId();if(!fid){setSyncStatus('err','Drive error');return;}
+    const r=await dfetch('https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=media',{
+      method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)
     });
-    setSyncStatus('ok','Synced '+new Date().toLocaleTimeString());
-  }catch(e){
-    setSyncStatus('err','Sync failed');
-    console.error('Drive save error',e);
-  }
+    if(r&&r.ok)setSyncStatus('ok','Saved '+new Date().toLocaleTimeString());
+    else setSyncStatus('err','Save failed');
+  }catch(e){setSyncStatus('err','Save error');console.error(e);}
 }
 
 async function loadFromDrive(){
-  if(!gapiReady)return;
+  if(!isCfg()||!getToken()){setSyncStatus('offline','Not connected');return;}
   setSyncStatus('spin','Loading…');
   try{
-    if(!driveFileId)driveFileId=await findOrCreateFile();
-    const r=await gapi.client.drive.files.get({fileId:driveFileId,alt:'media'});
-    if(r.body){
-      const d=JSON.parse(r.body);
-      DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};
-      save(false);// save to localStorage cache only
-      setSyncStatus('ok','Loaded from Drive');
+    const fid=await ensureFileId();if(!fid){setSyncStatus('err','File error');return;}
+    const r=await dfetch('https://www.googleapis.com/drive/v3/files/'+fid+'?alt=media',{method:'GET'});
+    if(!r){return;}
+    if(r.ok){
+      const txt=await r.text();
+      const hasLocal=Object.keys(DATA.tasks||{}).length>0||Object.keys(DATA.goals||{}).length>0||(DATA.recurring||[]).length>0;
+      if(txt.trim()){
+        const d=JSON.parse(txt);
+        DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};
+        save(false);
+        setSyncStatus('ok','Synced '+new Date().toLocaleTimeString());
+      } else if(hasLocal){
+        // Drive file is empty but local has data -> push local up
+        setSyncStatus('spin','Uploading local data…');
+        await saveToDrive();
+      } else {
+        setSyncStatus('ok','Synced (empty) '+new Date().toLocaleTimeString());
+      }
       render();
-    }else{setSyncStatus('ok','Drive empty - using local');}
-  }catch(e){
-    setSyncStatus('err','Load failed - using local');
-    console.error('Drive load error',e);
-  }
+    }else setSyncStatus('err','Load failed ('+r.status+')');
+  }catch(e){setSyncStatus('err','Load error');console.error(e);}
 }
 
-// Debounced drive save
-let _driveTimer=null;
-function scheduleDriveSave(){clearTimeout(_driveTimer);_driveTimer=setTimeout(saveToDrive,2000);}
+// ── OAuth via GIS popup ──
+function signIn(silent){
+  if(!isCfg()){showSetupPanel();return;}
+  if(!window.google||!google.accounts||!google.accounts.oauth2){
+    setSyncStatus('err','Google library not loaded yet — please retry in a moment');
+    return;
+  }
+  google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,scope:SCOPES,
+    callback:async(resp)=>{
+      if(resp.error||!resp.access_token){
+        if(silent){setSyncStatus('err','Session expired — click sign in');renderAuthBar();return;}
+        setSyncStatus('err','Auth failed: '+(resp.error||'no token'));return;
+      }
+      setToken(resp.access_token);
+      // get user email
+      try{const r=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+resp.access_token}});const u=await r.json();_user=u.email||'Connected';localStorage.setItem('lft_user',_user);}catch(e){_user='Connected';}
+      setSyncStatus('ok','Connected');
+      await loadFromDrive();
+      renderAuthBar();
+    }
+  }).requestAccessToken({prompt:silent?'':'consent'});
+}
+
+function signOut(){
+  const t=getToken();
+  if(t&&window.google)google.accounts.oauth2.revoke(t,()=>{});
+  setToken(null);_fileId=null;_user='';
+  localStorage.removeItem('lft_user');
+  setSyncStatus('offline','Signed out');renderAuthBar();
+}
+
+function scheduleDriveSave(){clearTimeout(_timer);_timer=setTimeout(saveToDrive,2500);}
 
 function renderAuthBar(){
-  const bar=document.getElementById('auth-bar');
-  if(!bar)return;
-  const signed=!!localStorage.getItem('lft_gdrive_token');
+  const bar=document.getElementById('auth-bar');if(!bar)return;
+  const signed=!!getToken();
+  _user=_user||localStorage.getItem('lft_user')||'';
+  if(!isCfg()){
+    bar.innerHTML=`<button class="gbtn" onclick="showSetupPanel()" style="color:var(--am);border-color:var(--am)">⚠️ Setup cloud sync</button>`;return;
+  }
   bar.innerHTML=signed
-    ?`<div class="sync-dot sync-${syncStatus}" id="sd" style="width:7px;height:7px;border-radius:50%;flex-shrink:0"></div>
-       <span style="font-size:11px;color:var(--tx2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${syncUser}</span>
-       <button class="gbtn" onclick="loadFromDrive()" title="Sync now">⟳</button>
+    ?`<div class="sync-dot" id="sd" style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--gr)"></div>
+       <span id="sl2" style="font-size:11px;color:var(--tx2);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_user}</span>
+       <button class="gbtn" onclick="loadFromDrive()" title="Sync">⟳</button>
        <button class="gbtn" onclick="signOut()" title="Sign out">↪</button>`
     :`<button class="gbtn" onclick="signIn()" style="color:var(--bl);border-color:var(--bl)">🔑 Google Drive</button>`;
 }
 
-window.initGis=initGis;
+// ── Setup panel ──
+function showSetupPanel(){
+  let p=document.getElementById('setupPanel');
+  if(p){p.style.display='block';return;}
+  const cur=localStorage.getItem('lft_client_id')||'';
+  const usingDefault=CLIENT_ID===DEFAULT_CLIENT_ID&&!cur;
+  p=document.createElement('div');
+  p.id='setupPanel';
+  p.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px';
+  p.innerHTML=`<div style="max-width:520px;width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:22px;color:var(--tx);max-height:90vh;overflow:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:16px;font-weight:800">☁️ Cloud sync setup</div>
+      <button class="gbtn" onclick="hideSetupPanel()">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.55">Life Tracker keeps everything in your own Google Drive (a private hidden folder only this app can read). You need a free <b>OAuth Client ID</b> from Google. Setup takes ~3 minutes.</p>
+    <ol style="font-size:12px;color:var(--tx2);padding-left:20px;line-height:1.7;margin-bottom:14px">
+      <li>Go to <a href="https://console.cloud.google.com/" target="_blank" style="color:var(--bl)">Google Cloud Console</a>, create a project.</li>
+      <li>Enable the <a href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank" style="color:var(--bl)">Google Drive API</a>.</li>
+      <li><a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" style="color:var(--bl)">OAuth consent screen</a> → External → add your email under <b>Test users</b>.</li>
+      <li><a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--bl)">Credentials</a> → Create Credentials → OAuth client ID → Web application.<br/>
+        Authorized JavaScript origins: <code style="background:var(--sf2);padding:1px 5px;border-radius:3px">${location.origin}</code></li>
+      <li>Copy the generated Client ID and paste it below.</li>
+    </ol>
+    <label style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em">Your Client ID</label>
+    <input id="cidIn" type="text" placeholder="123-abc.apps.googleusercontent.com" value="${cur.replace(/"/g,'&quot;')}" style="width:100%;font-size:12px;color:var(--tx);background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;margin-top:5px;margin-bottom:12px;font-family:monospace"/>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="ab" onclick="setClientId(document.getElementById('cidIn').value)">Save &amp; use</button>
+      <button class="gbtn" onclick="setClientId('')" title="Forget custom Client ID and use the default if any">Reset to default</button>
+      <div style="flex:1"></div>
+      <button class="gbtn" onclick="hideSetupPanel()">Skip — use local only</button>
+    </div>
+    ${usingDefault?'<p style="font-size:10px;color:var(--tx3);margin-top:10px">Currently using the bundled default Client ID. If sign-in fails with "origin_mismatch" or "access_denied", create your own Client ID using the steps above.</p>':''}
+  </div>`;
+  document.body.appendChild(p);
+}
+function hideSetupPanel(){const p=document.getElementById('setupPanel');if(p)p.style.display='none';}
 
+// Auto-reconnect on load if token exists. If token is expired/invalid,
+// silently try to get a fresh one via GIS so the user doesn't have to click.
+async function tryAutoLogin(){
+  if(!isCfg())return;
+  const t=getToken();
+  _user=localStorage.getItem('lft_user')||'';
+  if(t){
+    setSyncStatus('spin','Reconnecting…');
+    // Probe token validity with a cheap call
+    try{
+      const r=await fetch('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token='+encodeURIComponent(t));
+      if(r.ok){await loadFromDrive();return;}
+    }catch(e){}
+    // Token bad -> try silent reauth via GIS
+    setToken(null);
+  }
+  // Silent attempt if we have a known user — GIS will pop only if needed
+  if(_user&&window.google&&google.accounts&&google.accounts.oauth2){
+    setSyncStatus('spin','Reconnecting…');
+    signIn(true);
+  }
+}
+// Wait for GIS library to load before attempting auto-login
+function waitForGis(cb,tries){
+  tries=tries||0;
+  if(window.google&&google.accounts&&google.accounts.oauth2){cb();return;}
+  if(tries>40){setSyncStatus('err','Google library failed to load');renderAuthBar();return;}
+  setTimeout(()=>waitForGis(cb,tries+1),150);
+}
 // ── END GOOGLE DRIVE SYNC ───────────────────────────────────────
 
 const CATS=[
@@ -291,10 +414,7 @@ let DATA={goals:{},tasks:{},recurring:[],recurDone:{}};
 let VIEW='home',VY=TY,VM=TM,SEL=null;
 let NT={cat:'health',title:'',time:'',recur:false,until:''};
 
-function save(syncDrive=true){
-  try{localStorage.setItem(SK,JSON.stringify(DATA));}catch(e){}
-  if(syncDrive)scheduleDriveSave();
-}
+function save(syncDrive=true){try{localStorage.setItem(SK,JSON.stringify(DATA));}catch(e){}if(syncDrive)scheduleDriveSave();}
 function load(){try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};}}catch(e){}}
 
 function getDayTasks(dkey){
@@ -647,6 +767,9 @@ function openGcal(){if(!SEL)return;const url=`https://calendar.google.com/calend
 if(localStorage.getItem('lft_theme')==='light')document.body.classList.add('light');
 load();render();
 renderAuthBar();
+// Wait for the Google Identity Services script to finish loading, then
+// auto-reconnect if we have a stored session.
+waitForGis(()=>{tryAutoLogin();});
 </script>
 </body>
 </html>
