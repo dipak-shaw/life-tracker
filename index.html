@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Life Tracker</title>
@@ -43,6 +45,8 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointe
 .sh{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .st{font-size:14px;font-weight:700}
 .mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:24px}
+.mc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 10px;cursor:pointer;text-align:center;transition:all .15s}
+.mc:hover{background:var(--sf2);transform:translateY(-1px)}
 .mc.mn{background:var(--bld);border-color:var(--bl)}
 .mcn{font-size:13px;font-weight:600;margin-bottom:3px}.mc.mn .mcn{color:var(--bl)}
 .mcp{font-size:10px;color:var(--tx3);margin-bottom:6px}
@@ -569,6 +573,14 @@ function renderYear(){
       h+=`</div>`;
     });
   });
+  h+=`<div class="sl">YEAR SUMMARY</div>${sumBox(ys,ykeys(VY))}</div>`;
+  document.getElementById('R').innerHTML=h;
+}
+
+function renderMonth(){
+  const snum=VM<6?1:2,qnum=Math.ceil((VM+1)/3);
+  const skey=smk(VY,VM<6?0:1),qkey=qk(VY,qnum),mkey=mk(VY,VM);
+  const yg=DATA.goals[String(VY)]||{};
   const ms=stats(DATA.tasks,mkeys(VY,VM));
   const fd=firstMon(VY,VM),days=daysIn(VY,VM);
   const dkey=SEL?dk(VY,VM,SEL):null;
@@ -725,6 +737,8 @@ function renderYear(){
     });
     const opts=CATS.map(c=>`<option value="${c.id}"${NT.cat===c.id?' selected':''}>${c.i} ${c.l}</option>`).join('');
     h+=`<div class="ar">
+      <select class="as" onchange="NT.cat=this.value">${opts}</select>
+      <input class="ai" type="text" placeholder="Task title…" value="${NT.title}" oninput="NT.title=this.value" onkeydown="if(event.key==='Enter')doAdd()"/>
       <input class="at" type="time" value="${NT.time}" oninput="NT.time=this.value"/>
       <button class="ab" onclick="doAdd()">+ Add</button>
     </div>
@@ -732,6 +746,9 @@ function renderYear(){
       <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2);cursor:pointer">
         <input type="checkbox" ${NT.recur?'checked':''} onchange="NT.recur=this.checked;document.getElementById('uw').style.display=this.checked?'flex':'none'" style="width:14px;height:14px"/>
         🔁 Recurring daily
+      </label>
+      <span id="uw" style="display:${NT.recur?'flex':'none'};align-items:center;gap:4px;font-size:11px;color:var(--tx2)">
+        Until: <input class="at" type="date" value="${NT.until}" oninput="NT.until=this.value" style="width:120px"/>
       </span>
     </div></div>`;
   }
