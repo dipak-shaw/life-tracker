@@ -90,6 +90,14 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointe
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .gbtn{font-size:11px;border:1px solid var(--bd2);border-radius:6px;padding:4px 10px;background:var(--sf2);color:var(--tx);cursor:pointer}
 .gbtn:hover{border-color:var(--tx2)}
+.cat-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.cat-modal-content{max-width:500px;width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:22px;color:var(--tx);max-height:90vh;overflow:auto}
+.cat-item{display:flex;align-items:center;gap:10px;padding:12px;background:var(--sf2);border-radius:8px;margin-bottom:10px}
+.cat-item-info{flex:1}
+.cat-item-label{font-size:12px;font-weight:600}
+.cat-item-id{font-size:10px;color:var(--tx3)}
+.cat-item-color{width:20px;height:20px;border-radius:6px;border:1px solid var(--bd2);flex-shrink:0}
+.cat-item-actions{display:flex;gap:4px}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -105,6 +113,7 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointe
   <!-- Tools -->
   <button class="gbtn" onclick="exportData()" title="Export backup">⬇️</button>
   <button class="gbtn" onclick="importData()" title="Import backup">⬆️</button>
+  <button class="gbtn" onclick="showCategoryManager()" title="Manage categories">🏷️</button>
   <button class="gbtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
 </div>
 <div class="app"><div id="R"></div></div>
@@ -366,14 +375,15 @@ function waitForGis(cb,tries){
 }
 // ── END GOOGLE DRIVE SYNC ───────────────────────────────────────
 
-const CATS=[
-  {id:'personal',l:'Personal',i:'👤',c:'#a78bfa'},
-  {id:'health',l:'Health',i:'💪',c:'#4ade80'},
-  {id:'wealth',l:'Wealth',i:'💰',c:'#fbbf24'},
-  {id:'travel',l:'Travel',i:'✈️',c:'#60a5fa'},
-  {id:'branding',l:'Branding',i:'⭐',c:'#fb923c'},
-  {id:'content',l:'Content',i:'✏️',c:'#f472b6'},
+const DEFAULT_CATEGORIES=[
+  {id:'personal',label:'Personal',icon:'👤',color:'#a78bfa'},
+  {id:'health',label:'Health',icon:'💪',color:'#4ade80'},
+  {id:'wealth',label:'Wealth',icon:'💰',color:'#fbbf24'},
+  {id:'travel',label:'Travel',icon:'✈️',color:'#60a5fa'},
+  {id:'branding',label:'Branding',icon:'⭐',color:'#fb923c'},
+  {id:'content',label:'Content',icon:'✏️',color:'#f472b6'},
 ];
+function getCats(){return DATA.categories||DEFAULT_CATEGORIES;}
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MF=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DH=['Mo','Tu','We','Th','Fr','Sa','Su'];
@@ -410,12 +420,12 @@ function getGoal(key,cat){const o=getGoalObj(key,cat);return{text:o.items.map(i=
 function setGoalText(key,cat,text){if(!text.trim())return;const o=getGoalObj(key,cat);if(!o.items.length)o.items=[{text,done:false}];else o.items[o.items.length-1].text=text;saveGoalObj(key,cat,o);}
 function toggleGoalDone(key,cat){const o=getGoalObj(key,cat);const all=o.items.every(i=>i.done);o.items=o.items.map(i=>({...i,done:!all}));saveGoalObj(key,cat,o);render();}
 
-let DATA={goals:{},tasks:{},recurring:[],recurDone:{}};
+let DATA={goals:{},tasks:{},recurring:[],recurDone:{},categories:DEFAULT_CATEGORIES.map(c=>({...c}))};
 let VIEW='home',VY=TY,VM=TM,SEL=null;
 let NT={cat:'health',title:'',time:'',recur:false,until:''};
 
 function save(syncDrive=true){try{localStorage.setItem(SK,JSON.stringify(DATA));}catch(e){}if(syncDrive)scheduleDriveSave();}
-function load(){try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};}}catch(e){}}
+function load(){try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r);DATA={goals:{},tasks:{},recurring:[],recurDone:{},categories:DEFAULT_CATEGORIES.map(c=>({...c}}),...d};if(!DATA.categories||!DATA.categories.length)DATA.categories=DEFAULT_CATEGORIES.map(c=>({...c}));}}catch(e){}}
 
 function getDayTasks(dkey){
   const reg=DATA.tasks[dkey]||[];
@@ -465,8 +475,47 @@ function carryW(){const cw=weekOfDay(VY,VM,SEL||TD);if(!cw)return;const pw=weekR
 function pills(s){return `<span class="sp sg">✓${s.done}</span><span class="sp sr" style="margin-left:4px">✗${s.miss}</span><span class="sc" style="margin-left:6px">${s.pct}%</span>`;}
 function pb(pct,col){return `<div class="pbar"><div class="pf" style="width:${pct}%;background:${col||'var(--gr)'}"></div></div>`;}
 function pct_lbl(pct){return `<div style="font-size:8px;color:var(--tx3);text-align:right;margin-top:2px">${pct}% tasks</div>`;}
-function catBars(keys){return CATS.map(c=>{const cs=catStat(DATA.tasks,keys,c.id);if(!cs.tot)return'';return `<div class="cbr"><span class="cbn">${c.i} ${c.l}</span><div class="cbt"><div class="cbf" style="width:${cs.pct}%;background:${c.c}"></div></div><span class="cbp">${cs.pct}%</span></div>`;}).join('');}
+function catBars(keys){return getCats().map(c=>{const cs=catStat(DATA.tasks,keys,c.id);if(!cs.tot)return'';return `<div class="cbr"><span class="cbn">${c.icon} ${c.label}</span><div class="cbt"><div class="cbf" style="width:${cs.pct}%;background:${c.color}"></div></div><span class="cbp">${cs.pct}%</span></div>`;}).join('');}
 function xbtn(label,fn,title){return `<button class="xb" onclick="${fn}" title="${title}">${label}</button>`;}
+function addCategory(){const name=prompt('Category name:');if(!name)return;const icon=prompt('Icon/emoji:','📌');if(!icon)return;const color=prompt('Color (hex):','#6366f1');if(!color)return;const id=name.toLowerCase().replace(/[^a-z0-9]/g,'_');if(DATA.categories.find(c=>c.id===id)){alert('Category already exists');return;}DATA.categories.push({id,label:name,icon,color});save();render();}
+function editCategory(id){const cat=DATA.categories.find(c=>c.id===id);if(!cat)return;const newName=prompt('Edit name:',cat.label);if(!newName)return;const newIcon=prompt('Edit icon:',cat.icon);if(!newIcon)return;const newColor=prompt('Edit color:',cat.color);if(!newColor)return;cat.label=newName;cat.icon=newIcon;cat.color=newColor;save();render();}
+function deleteCategory(id){const cat=DATA.categories.find(c=>c.id===id);if(!cat)return;if(!confirm('Delete category "'+cat.label+'"? Tasks will not be deleted.'))return;DATA.categories=DATA.categories.filter(c=>c.id!==id);save();render();}
+
+function showCategoryManager(){
+  let modal=document.getElementById('catModal');
+  if(modal){modal.style.display='flex';return;}
+  modal=document.createElement('div');
+  modal.id='catModal';
+  modal.className='cat-modal';
+  let html=`<div class="cat-modal-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:800">📁 Manage Categories</div>
+      <button class="gbtn" onclick="document.getElementById('catModal').style.display='none'" style="padding:2px 8px">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">Add, edit, or remove categories for organizing your goals and tasks.</p>
+    <div style="margin-bottom:16px">`;
+  
+  DATA.categories.forEach(cat=>{
+    html+=`<div class="cat-item">
+      <div class="cat-item-color" style="background:${cat.color}"></div>
+      <div class="cat-item-info">
+        <div class="cat-item-label">${cat.icon} ${cat.label}</div>
+        <div class="cat-item-id">${cat.id}</div>
+      </div>
+      <div class="cat-item-actions">
+        <button class="gb" onclick="editCategory('${cat.id}')" style="font-size:10px">Edit</button>
+        <button class="gb" onclick="deleteCategory('${cat.id}')" style="font-size:10px;color:var(--rd)">Delete</button>
+      </div>
+    </div>`;
+  });
+  
+  html+=`</div>
+    <button class="ab" onclick="addCategory()" style="width:100%;text-align:center;padding:8px">+ Add New Category</button>
+  </div>`;
+  
+  modal.innerHTML=html;
+  document.body.appendChild(modal);
+}
 
 function goalCard(gkey,c,label,pkeys,parentHtml){
   const o=getGoalObj(gkey,c.id);
@@ -502,7 +551,7 @@ function goalCard(gkey,c,label,pkeys,parentHtml){
 }
 function goalGrid(gkey,label,pkeys,parentGoalKeys){
   // parentGoalKeys: array of {key,label} for read-only parent goals shown above
-  return `<div class="gg">${CATS.map(c=>{
+  return `<div class="gg">${getCats().map(c=>{
     let parentHtml='';
     if(parentGoalKeys&&parentGoalKeys.length){
       parentHtml='<div style="border-bottom:1px solid var(--bd);margin-bottom:6px;padding-bottom:6px">';
@@ -606,7 +655,7 @@ function renderMonth(){
     <th style="padding:8px 10px;text-align:left;color:var(--tx3)">📅 ${MO[VM]}</th>
   </tr></thead><tbody>`;
 
-  CATS.forEach((c,i)=>{
+  getCats().forEach((c,i)=>{
     const bg=i%2?'background:var(--sf2)':'';
     const ypct=catStat(DATA.tasks,ykeys(VY),c.id).pct;
     const spct=catStat(DATA.tasks,smkeys(VY,VM<6?0:1),c.id).pct;
@@ -618,16 +667,16 @@ function renderMonth(){
       const gpct=gt?Math.round(gd/gt*100):0;
       const eid2='tc_'+gk.replace(/[^a-z0-9]/gi,'_')+'_'+c.id;
       let rows=o.items.map((it,idx)=>`<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
-        <div onclick="toggleGoalItem('${gk}','${c.id}',${idx})" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:2px solid ${c.c};background:${it.done?c.c:'transparent'};cursor:pointer"></div>
+        <div onclick="toggleGoalItem('${gk}','${c.id}',${idx})" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:2px solid ${c.color};background:${it.done?c.color:'transparent'};cursor:pointer"></div>
         <span style="font-size:10px;color:${it.done?'var(--tx3)':'var(--tx)'};text-decoration:${it.done?'line-through':'none'}">${it.text.replace(/</g,'&lt;')||'—'}</span>
       </div>`).join('');
       const addRow=editable?`<input id="${eid2}" type="text" placeholder="+ goal, Enter" style="width:100%;font-size:9px;color:var(--tx3);background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:2px 5px;margin-top:3px" onkeydown="if(event.key==='Enter'&&this.value.trim()){addGoalItemText('${gk}','${c.id}',this.value.trim());this.value='';event.preventDefault();}"/>`:'';
-      const gbar=gt?`<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${gpct}%;background:${c.c}"></div></div><span style="font-size:8px;color:var(--tx3)">${gpct}%</span></div>`:'';
-      const tbar=`<div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${tpct}%;background:${c.c};opacity:.5"></div></div><span style="font-size:8px;color:var(--tx3)">${tpct}% tasks</span></div>`;
+      const gbar=gt?`<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${gpct}%;background:${c.color}"></div></div><span style="font-size:8px;color:var(--tx3)">${gpct}%</span></div>`:'';
+      const tbar=`<div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${tpct}%;background:${c.color};opacity:.5"></div></div><span style="font-size:8px;color:var(--tx3)">${tpct}% tasks</span></div>`;
       return `<td style="padding:6px 10px;${bg};min-width:130px;vertical-align:top">${rows||'<span style="font-size:9px;color:var(--tx3)">No goals</span>'}${addRow}${gbar}${tbar}</td>`;
     }
     h+=`<tr style="border-top:1px solid var(--bd)">
-      <td style="padding:8px 10px;color:${c.c};font-weight:700;white-space:nowrap;${bg}">${c.i} ${c.l}</td>
+      <td style="padding:8px 10px;color:${c.color};font-weight:700;white-space:nowrap;${bg}">${c.icon} ${c.label}</td>
       ${tcell(String(VY),ypct,false)}
       ${tcell(skey,spct,true)}
       ${tcell(qkey,qpct,true)}
@@ -650,7 +699,7 @@ function renderMonth(){
       ${pills(ws)}
     </div>
     <div class="gg">`;
-    CATS.forEach(c=>{
+    getCats().forEach(c=>{
       const wo=getGoalObj(wkey,c.id);
       // Collect all tasks for this cat in the week
       const wTasks=wdkeys.flatMap(dkey2=>{
@@ -668,22 +717,22 @@ function renderMonth(){
       const eid3='wi_'+wkey.replace(/[^a-z0-9]/gi,'_')+'_'+c.id;
       // Task rows as circles
       let taskRows=wTasks.map(t=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
-        <div onclick="toggleTask('${t._dk}','${t.id}')" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:2px solid ${c.c};background:${t.done?c.c:'transparent'};cursor:pointer"></div>
+        <div onclick="toggleTask('${t._dk}','${t.id}')" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:2px solid ${c.color};background:${t.done?c.color:'transparent'};cursor:pointer"></div>
         <span style="font-size:10px;color:${t.done?'var(--tx3)':'var(--tx)'};text-decoration:${t.done?'line-through':'none'}">${t.title}${t.time?' ⏰'+t.time:''}</span>
         ${t.isRec?'<span style="font-size:8px;color:var(--bl)">🔁</span>':''}
       </div>`).join('');
       // Extra manual goals
       let goalRows=wo.items.filter(it=>!wTasks.some(t=>t.title===it.text)).map((it,idx)=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
-        <div onclick="toggleGoalItem('${wkey}','${c.id}',${idx})" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:1.5px dashed ${c.c};background:${it.done?c.c:'transparent'};cursor:pointer"></div>
+        <div onclick="toggleGoalItem('${wkey}','${c.id}',${idx})" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:1.5px dashed ${c.color};background:${it.done?c.color:'transparent'};cursor:pointer"></div>
         <input value="${it.text.replace(/"/g,'&quot;')}" onblur="setGoalItemText('${wkey}','${c.id}',${idx},this.value)" style="flex:1;font-size:10px;color:${it.done?'var(--tx3)':'var(--tx)'};text-decoration:${it.done?'line-through':'none'};background:none;border:none;outline:none"/>
         <button onclick="delGoalItem('${wkey}','${c.id}',${idx})" style="font-size:9px;color:var(--tx3)">✕</button>
       </div>`).join('');
-      h+=`<div class="gc" style="border-left:2px solid ${c.c}">
-        <div style="font-size:10px;font-weight:600;color:${c.c};margin-bottom:5px">${c.i} ${c.l}</div>
+      h+=`<div class="gc" style="border-left:2px solid ${c.color}">
+        <div style="font-size:10px;font-weight:600;color:${c.color};margin-bottom:5px">${c.icon} ${c.label}</div>
         ${taskRows||''}${goalRows||''}
         <input id="${eid3}" type="text" placeholder="+ goal, Enter" style="width:100%;font-size:10px;color:var(--tx2);background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:3px 6px;margin-top:4px" onkeydown="if(event.key==='Enter'&&this.value.trim()){addGoalItemText('${wkey}','${c.id}',this.value.trim());this.value='';}"/>
         <div style="display:flex;align-items:center;gap:5px;margin-top:4px">
-          <div style="flex:1;height:3px;background:var(--bd);border-radius:2px"><div style="height:3px;width:${wpct}%;background:${c.c};opacity:.5;border-radius:2px"></div></div>
+          <div style="flex:1;height:3px;background:var(--bd);border-radius:2px"><div style="height:3px;width:${wpct}%;background:${c.color};opacity:.5;border-radius:2px"></div></div>
           <span style="font-size:8px;color:var(--tx3)">${wpct}% tasks</span>
         </div>
       </div>`;
@@ -703,7 +752,7 @@ function renderMonth(){
     const isT=VY===TY&&VM===TM&&d===TD,isSel=SEL===d;
     const hasMiss=dt.some(t=>!t.done&&!t.carried);
     const inW=highlightW&&d>=highlightW.start&&d<=highlightW.end;
-    const dots=CATS.filter(c=>dt.some(t=>t.cat===c.id)).map(c=>`<div class="dot" style="background:${c.c}"></div>`).join('');
+    const dots=getCats().filter(c=>dt.some(t=>t.cat===c.id)).map(c=>`<div class="dot" style="background:${c.color}"></div>`).join('');
     const firstTime=(dt.find(t=>t.time)||{}).time;
     h+=`<div class="cc${isSel?' sel':isT?' tod':''} ${inW?'inw':''}" onclick="selDay(${d})">
       <div class="cdn${isT?' tdn':isSel?' sdn':''}">${d}</div>
@@ -724,18 +773,18 @@ function renderMonth(){
     </div>`;
     if(!dayTasks.length)h+=`<div class="nt2">No tasks — add below.</div>`;
     dayTasks.forEach(t=>{
-      const cat=CATS.find(c=>c.id===t.cat)||{c:'var(--tx3)'};
+      const cat=getCats().find(c=>c.id===t.cat)||{color:'var(--tx3)'};
       h+=`<div class="tr">
         <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${dkey}','${t.id}')"/>
         <span class="tt${t.done?' done':''}">${t.title}</span>
         ${t.time?`<span class="tim">⏰${t.time}</span>`:''}
         ${t.isRec?`<span class="rec">🔁 daily</span>`:''}
         ${t.carried?`<span class="car">carried</span>`:''}
-        <div class="tdot" style="background:${cat.c}"></div>
+        <div class="tdot" style="background:${cat.color}"></div>
         <button class="td" onclick="delTask('${dkey}','${t.id}')">✕</button>
       </div>`;
     });
-    const opts=CATS.map(c=>`<option value="${c.id}"${NT.cat===c.id?' selected':''}>${c.i} ${c.l}</option>`).join('');
+    const opts=getCats().map(c=>`<option value="${c.id}"${NT.cat===c.id?' selected':''}>${c.icon} ${c.label}</option>`).join('');
     h+=`<div class="ar">
       <select class="as" onchange="NT.cat=this.value">${opts}</select>
       <input class="ai" type="text" placeholder="Task title…" value="${NT.title}" oninput="NT.title=this.value" onkeydown="if(event.key==='Enter')doAdd()"/>
