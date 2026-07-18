@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Life Tracker</title>
@@ -623,17 +625,12 @@ function renderYear(){
       h+=`<div class="sl">Q${q} GOALS</div>${goalGrid(qkey,'Q'+q,qkeys(VY,q),[{key:String(VY),label:'Year '+VY},{key:skey,label:'S'+(s+1)}])}`;
       h+=`<div class="mg">`;
       Array.from({length:3},(_,i)=>i+(q-1)*3).forEach(m=>{
-        const ms2=stats(DATA.tasks,mkeys(VY,m)),now=VY===TY&&m===TM;
-        h+=`<div class="mc${now?' mn':''}" onclick="goMonth(${m})"><div class="mcn">${MO[m]}</div><div class="mcp">${ms2.tot?ms2.pct+'%':'–'}</div>${pb(ms2.pct)}</div>`;
+        const ms=stats(DATA.tasks,mkeys(VY,m)),now=VY===TY&&m===TM;
+        h+=`<div class="mc${now?' mn':''}" onclick="goMonth(${m})"><div class="mcn">${MO[m]}</div><div class="mcp">${ms.tot?ms.pct+'%':'–'}</div>${pb(ms.pct)}</div>`;
       });
       h+=`</div>`;
     });
   });
-  h+=`<div class="sl" style="margin-top:8px">YEAR SUMMARY</div>${sumBox(ys,ykeys(VY))}`;
-  document.getElementById('R').innerHTML=h;
-}
-
-function renderMonth(){
   const ms=stats(DATA.tasks,mkeys(VY,VM));
   const fd=firstMon(VY,VM),days=daysIn(VY,VM);
   const dkey=SEL?dk(VY,VM,SEL):null;
@@ -796,7 +793,7 @@ function renderMonth(){
           ${t.isRec?`<span class="rec">🔁 daily</span>`:''}
           ${t.carried?`<span class="car">carried</span>`:''}
           <div class="tdot" style="background:${cat.c}"></div>
-          ${!t.isRec?`<button class="td" style="color:var(--bl)" onclick="startEditTask('${dkey}','${t.id}')" title="Edit">✎</button>`:''}
+          ${!t.isRec?`<button class="td" style="color:var(--bl)" onclick="startEditTask('${dkey}','${t.id}')" title="Edit">✎</button>`:''}          
           <button class="td" onclick="delTask('${dkey}','${t.id}')">✕</button>
         </div>`;
       }
