@@ -1,35 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Life Tracker</title>
+<meta name="author" content="Dipak Shaw"/>
+<meta name="description" content="A single-file life tracker for 10-year goal planning. Built and designed by Dipak Shaw. Stores data locally with optional Google Drive sync."/>
+<meta name="theme-color" content="#0f0f0f"/>
+<meta property="og:title" content="Life Tracker"/>
+<meta property="og:description" content="A single-file life tracker for 10-year goal planning by Dipak Shaw."/>
+<meta property="og:type" content="website"/>
 <style>
 :root{--bg:#0f0f0f;--sf:#181818;--sf2:#222;--bd:#2e2e2e;--bd2:#3a3a3a;--tx:#f0ede8;--tx2:#9a9690;--tx3:#5a5652;--gr:#4ade80;--gd:#1a3a27;--rd:#f87171;--rdd:#3a1a1a;--am:#fbbf24;--amd:#3a2a00;--bl:#60a5fa;--bld:#1a2a3a;--r:10px}
-body.light{--bg:#f5f4f0;--sf:#fff;--sf2:#f0eeea;--bd:#e0ddd8;--bd2:#c8c4be;--tx:#1a1a1a;--tx2:#6a6660;--tx3:#aaa8a4;--gd:#d4f7e4;--rdd:#fde8e8;--amd:#fff8e0;--bld:#e8f0ff}
+body.light{--bg:#f5f4f0;--sf:#ffffff;--sf2:#f0eeea;--bd:#e0ddd8;--bd2:#c8c4be;--tx:#1a1a1a;--tx2:#6a6660;--tx3:#aaa8a4;--gd:#d4f7e4;--rdd:#fde8e8;--amd:#fff8e0;--bld:#e8f0ff}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);font-size:14px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5}
 button{cursor:pointer;border:none;background:none;font-family:inherit;color:var(--tx)}
 input,textarea,select{font-family:inherit;color:var(--tx);background:none;border:none;outline:none}
 textarea{resize:vertical;line-height:1.5}
 input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointer;flex-shrink:0}
-#toolbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--sf);border-bottom:1px solid var(--bd)}
-#toolbar .title{font-size:13px;font-weight:800;letter-spacing:-.01em}
-#toolbar .spacer{flex:1}
-.tbtn{font-size:11px;border:1px solid var(--bd2);border-radius:6px;padding:4px 10px;background:var(--sf2);color:var(--tx);cursor:pointer}
-.tbtn:hover{border-color:var(--tx2)}
-.sync-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
-.sok{background:var(--gr)}.serr{background:var(--rd)}.sspin{background:var(--am);animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.app{max-width:960px;margin:0 auto;padding:20px 16px 80px}
-.bb{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd2);border-radius:8px;padding:6px 13px;font-size:12px;font-weight:500;color:var(--tx2);background:var(--sf);margin-bottom:14px;cursor:pointer}
+.app{max-width:960px;margin:0 auto;padding:24px 16px 80px}
+.bb{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd2);border-radius:8px;padding:6px 13px;font-size:12px;font-weight:500;color:var(--tx2);background:var(--sf);margin-bottom:14px}
 .bb:hover{color:var(--tx);border-color:var(--tx2)}
 .tb{display:flex;align-items:center;gap:7px;margin-bottom:18px;flex-wrap:wrap}
 .pt{font-size:26px;font-weight:800;flex:1;letter-spacing:-.02em}
 .sp{display:inline-flex;align-items:center;border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600}
 .sg{background:var(--gd);color:var(--gr)}.sr{background:var(--rdd);color:var(--rd)}.sc{color:var(--tx2);font-size:12px}
 .sl{font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--tx3);text-transform:uppercase;margin-bottom:8px}
-.pbar{height:3px;background:var(--bd);border-radius:2px;overflow:hidden;margin-top:4px}
-.pf{height:3px;border-radius:2px;transition:width .3s}
+.pbar{height:4px;background:var(--bd);border-radius:2px;overflow:hidden;margin-top:5px}
+.pf{height:4px;border-radius:2px;transition:width .4s}
 .yg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px}
 .yc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .15s}
 .yc:hover{background:var(--sf2);border-color:var(--bd2);transform:translateY(-1px)}
@@ -37,17 +33,20 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointe
 .yn{font-size:24px;font-weight:800;margin-bottom:2px}.yc.now .yn{color:var(--bl)}
 .ym{font-size:11px;color:var(--tx3);margin-bottom:8px}
 .gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:8px;margin-bottom:18px}
-.gc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px;transition:border-color .15s}
+.gc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px;position:relative;transition:border-color .15s}
 .gc:focus-within{border-color:var(--bd2)}
+.gcl{font-size:10px;font-weight:600;margin-bottom:6px;padding-right:22px}
+.gc textarea{width:100%;font-size:11px;min-height:44px;white-space:pre-wrap}
+.gc textarea::placeholder{color:var(--tx3);font-style:italic}
+.gcircle{width:16px;height:16px;border-radius:50%;border-width:2px;border-style:solid;cursor:pointer;position:absolute;top:10px;right:10px;transition:all .2s;flex-shrink:0}
+.gcircle:hover{transform:scale(1.15)}
 .sh{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .st{font-size:14px;font-weight:700}
 .mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:24px}
-.mc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 10px;cursor:pointer;text-align:center;transition:all .15s}
-.mc:hover{background:var(--sf2);transform:translateY(-1px)}
 .mc.mn{background:var(--bld);border-color:var(--bl)}
 .mcn{font-size:13px;font-weight:600;margin-bottom:3px}.mc.mn .mcn{color:var(--bl)}
 .mcp{font-size:10px;color:var(--tx3);margin-bottom:6px}
-.sb{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:20px}
+.sb{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-top:4px;margin-bottom:20px}
 .sn{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;text-align:center}
 .snum{font-size:24px;font-weight:800}.slb{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
 .cbr{display:flex;align-items:center;gap:8px;margin-bottom:6px}
@@ -55,134 +54,315 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointe
 .cbf{height:4px;border-radius:2px}.cbp{font-size:11px;color:var(--tx3);width:28px;text-align:right}
 .cw{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
 .ch{display:grid;grid-template-columns:repeat(7,1fr);background:var(--sf2);border-bottom:1px solid var(--bd)}
-.ch div{text-align:center;padding:7px 0;font-size:10px;font-weight:600;color:var(--tx3)}
+.ch div{text-align:center;padding:7px 0;font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.05em}
 .cb{display:grid;grid-template-columns:repeat(7,1fr)}
-.cc{min-height:56px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:4px;cursor:pointer;transition:background .1s}
+.cc{min-height:58px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:4px 5px;cursor:pointer;transition:background .1s}
 .cc:hover{background:var(--sf2)}.cc.tod{background:var(--bld)}.cc.sel{background:var(--amd)}
 .cc.inw{box-shadow:inset 0 0 0 1px #3a3a6a}.cc.emp{opacity:.15;cursor:default;pointer-events:none}
 .cdn{font-size:11px;font-weight:500}.cdn.tdn{color:var(--bl);font-weight:800}.cdn.sdn{color:var(--am)}
 .ctc{font-size:9px;margin-top:1px}.dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}.dot{width:5px;height:5px;border-radius:50%}
-.ctm{font-size:8px;color:var(--am);margin-top:1px}
+.ctm{font-size:8px;color:var(--am);margin-top:1px;font-weight:500}
 .dp{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r);padding:16px;margin-bottom:12px}
-.dpt{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.dpt{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.gb{font-size:10px;background:var(--sf2);border:1px solid var(--bd2);border-radius:6px;padding:3px 8px;color:var(--tx2)}.gb:hover{color:var(--tx)}
 .tr{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--bd)}.tr:last-of-type{border:none}
 .tt{flex:1;font-size:12px}.tt.done{text-decoration:line-through;color:var(--tx3)}
 .tim{font-size:10px;color:var(--tx3)}.car{font-size:9px;background:var(--amd);color:var(--am);border-radius:3px;padding:1px 5px}
 .rec{font-size:9px;background:#1a1a3a;color:var(--bl);border-radius:3px;padding:1px 5px}
 .tdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}.td{font-size:12px;color:var(--tx3)}.td:hover{color:var(--rd)}
+.nt2{font-size:12px;color:var(--tx3);font-style:italic;padding:4px 0 8px}
 .ar{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
 .as,.ai,.at{background:var(--sf2);border:1px solid var(--bd);border-radius:7px;padding:5px 8px;font-size:11px;color:var(--tx);font-family:inherit}
+.as:focus,.ai:focus,.at:focus{border-color:var(--bd2)}
 .ai{flex:1;min-width:80px}.ai::placeholder{color:var(--tx3)}.at{width:90px}
-.ab{background:var(--gd);color:var(--gr);border:1px solid var(--gd);border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600}
-.ab:hover{background:var(--gr);color:#0f0f0f}
-.xb{background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:4px 8px;font-size:10px;color:var(--tx2);cursor:pointer}
-.xb:hover{color:var(--tx);border-color:var(--tx2)}
+.ab{background:var(--gd);color:var(--gr);border:1px solid var(--gd);border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600}.ab:hover{background:var(--gr);color:#0f0f0f}
+.xb{background:var(--amd);color:var(--am);border:1px solid var(--amd);border-radius:7px;padding:5px 9px;font-size:10px;font-weight:500}.xb:hover{background:var(--am);color:#0f0f0f}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-.ai2{animation:fi .18s ease}
+.ai2{animation:fi .2s ease}
+.auth-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--sf);border-bottom:1px solid var(--bd);font-size:11px;flex-wrap:wrap}
+.auth-bar .user{flex:1;color:var(--tx2)}
+.sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sync-ok{background:var(--gr)}.sync-err{background:var(--rd)}.sync-spin{background:var(--am);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gbtn{font-size:11px;border:1px solid var(--bd2);border-radius:6px;padding:4px 10px;background:var(--sf2);color:var(--tx);cursor:pointer}
+.gbtn:hover{border-color:var(--tx2)}
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<div id="toolbar">
-  <span class="title">Life Tracker</span>
-  <div class="spacer"></div>
-  <div id="auth-bar"></div>
-  <div style="width:1px;height:14px;background:var(--bd);margin:0 2px"></div>
-  <button class="tbtn" onclick="exportData()" title="Export backup">⬇️</button>
-  <button class="tbtn" onclick="importData()" title="Import backup">⬆️</button>
-  <button class="tbtn" onclick="showCatManager()" title="Edit categories">⚙️</button>
-  <button id="themeBtn" class="tbtn" onclick="toggleTheme()">☀️</button>
+<div id="toolbar" style="position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--sf);border-bottom:1px solid var(--bd);flex-wrap:wrap">
+  <span style="font-size:13px;font-weight:800;letter-spacing:-.01em;color:var(--tx)">Life Tracker</span>
+  <div style="flex:1"></div>
+  <!-- Drive status -->
+  <div id="auth-bar" style="display:flex;align-items:center;gap:6px">
+    <span style="color:var(--tx3);font-size:11px">Connecting…</span>
+  </div>
+  <div style="width:1px;height:16px;background:var(--bd)"></div>
+  <!-- Tools -->
+  <button class="gbtn" onclick="showCatMgr()" title="Manage categories">⚙️</button>
+  <button class="gbtn" onclick="exportData()" title="Export backup">⬇️</button>
+  <button class="gbtn" onclick="importData()" title="Import backup">⬆️</button>
+  <button class="gbtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
 </div>
 <div class="app"><div id="R"></div></div>
+<footer style="max-width:960px;margin:24px auto 32px;padding:16px;text-align:center;font-size:11px;color:var(--tx3);border-top:1px solid var(--bd)">
+  Built by <a href="https://github.com/dipakshaw" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none;font-weight:600">Dipak Shaw</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/dipakshaw/life-tracker" target="_blank" rel="noopener" style="color:var(--tx2);text-decoration:none">Source on GitHub</a>
+  &nbsp;·&nbsp;
+  <span>MIT License © 2026</span>
+</footer>
 <script>
-// ─── SYNC via JSONBin.io ─────────────────────────────────────────
-// Free at jsonbin.io — no OAuth, just an API key
-let _jkey=localStorage.getItem('lft_jkey')||'';
-let _jbin=localStorage.getItem('lft_jbin')||'';
-let _stimer=null,_user='';
+// ══ GOOGLE DRIVE SYNC — CONFIGURATION ════════════════════════════════════════════════════
+// To enable Google Drive sync across devices you need a free OAuth 2.0 Client ID.
+// Full step-by-step setup is in README.md. TL;DR:
+//   1. https://console.cloud.google.com/  → create a project
+//   2. APIs & Services → Library → enable "Google Drive API"
+//   3. OAuth consent screen → External → add yourself as a Test User
+//   4. Credentials → Create OAuth Client ID → Web application
+//      Authorized JavaScript origins:
+//        http://localhost:8080
+//        https://YOUR-USERNAME.github.io
+//   5. Paste the generated Client ID below (or override at runtime — see below).
+//
+// Three ways to provide the Client ID, checked in this order:
+//   (a) URL query param   —  ?client_id=XXX.apps.googleusercontent.com
+//   (b) localStorage      —  localStorage.setItem('lft_client_id','XXX...')
+//   (c) the constant below
+// This lets one published file work for many users without editing code.
+// ════════════════════════════════════════════════════════════════════════════════════════
+const DEFAULT_CLIENT_ID='853038975975-1akjuk1dl0djt4keualqbjgr7ohe0fad.apps.googleusercontent.com';
+const PLACEHOLDER='YOUR_GOOGLE_CLIENT_ID';
 
-function getJ(){return{key:localStorage.getItem('lft_jkey')||'',bin:localStorage.getItem('lft_jbin')||''};}
-function isCfg(){const j=getJ();return j.key&&j.bin;}
+function resolveClientId(){
+  try{
+    const p=new URLSearchParams(location.search).get('client_id');
+    if(p&&p.trim())return p.trim();
+  }catch(e){}
+  const ls=localStorage.getItem('lft_client_id');
+  if(ls&&ls.trim())return ls.trim();
+  return DEFAULT_CLIENT_ID;
+}
+let CLIENT_ID=resolveClientId();
+const SCOPES='https://www.googleapis.com/auth/drive.appdata';
+const FNAME='life-tracker-data.json';
+let _token=null,_fileId=null,_timer=null,_user='';
 
-function setSS(cls,msg){
-  const d=document.getElementById('sd'),l=document.getElementById('sl2');
-  if(d)d.className='sync-dot s'+cls;
-  if(l)l.textContent=msg;
+function isCfg(){return CLIENT_ID&&CLIENT_ID!==PLACEHOLDER;}
+
+function setClientId(id){
+  if(!id||!id.trim()){localStorage.removeItem('lft_client_id');CLIENT_ID=DEFAULT_CLIENT_ID;}
+  else{localStorage.setItem('lft_client_id',id.trim());CLIENT_ID=id.trim();}
+  setToken(null);_fileId=null;_user='';localStorage.removeItem('lft_user');
+  hideSetupPanel();renderAuthBar();
+}
+
+// ── Token helpers ──
+function getToken(){return _token||localStorage.getItem('lft_token');}
+function setToken(t){_token=t;if(t)localStorage.setItem('lft_token',t);else localStorage.removeItem('lft_token');}
+
+// ── Status bar ──
+function setSyncStatus(s,msg){
+  const dot=document.getElementById('sd');
+  const lbl=document.getElementById('sl2');
+  const cls={'ok':'sync-ok','err':'sync-err','spin':'sync-spin','offline':'sync-err'}[s]||'sync-err';
+  if(dot){dot.className='sync-dot '+cls;}
+  if(lbl)lbl.textContent=msg||s;
+}
+
+// ── Drive REST helper (plain fetch, no gapi needed) ──
+async function dfetch(url,opts){
+  const tk=getToken();if(!tk)return null;
+  const h={'Authorization':'Bearer '+tk,...(opts.headers||{})};
+  const r=await fetch(url,{...opts,headers:h});
+  if(r.status===401){handleExpired();return null;}
+  return r;
+}
+
+function handleExpired(){
+  setToken(null);setSyncStatus('err','Session expired - reconnect');renderAuthBar();
+}
+
+async function findFile(){
+  const r=await dfetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'+FNAME+'%27&fields=files(id)',{method:'GET'});
+  if(!r)return null;
+  const d=await r.json();
+  return d.files&&d.files.length?d.files[0].id:null;
+}
+
+async function createFile(){
+  const r=await dfetch('https://www.googleapis.com/drive/v3/files',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:FNAME,parents:['appDataFolder']})
+  });
+  if(!r)return null;
+  const d=await r.json();return d.id;
+}
+
+async function ensureFileId(){
+  if(_fileId)return _fileId;
+  _fileId=await findFile();
+  if(!_fileId)_fileId=await createFile();
+  return _fileId;
 }
 
 async function saveToDrive(){
-  const {key,bin}=getJ();if(!key||!bin)return;
-  setSS('spin','Saving…');
+  if(!isCfg()||!getToken())return;
+  setSyncStatus('spin','Saving…');
   try{
-    const r=await fetch(`https://api.jsonbin.io/v3/b/${bin}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':key},body:JSON.stringify(DATA)});
-    setSS(r.ok?'ok':'err',r.ok?'Saved '+new Date().toLocaleTimeString():'Save failed');
-  }catch(e){setSS('err','Offline');}
+    const fid=await ensureFileId();if(!fid){setSyncStatus('err','Drive error');return;}
+    const r=await dfetch('https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=media',{
+      method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)
+    });
+    if(r&&r.ok)setSyncStatus('ok','Saved '+new Date().toLocaleTimeString());
+    else setSyncStatus('err','Save failed');
+  }catch(e){setSyncStatus('err','Save error');console.error(e);}
 }
 
 async function loadFromDrive(){
-  const {key,bin}=getJ();if(!key||!bin)return;
-  setSS('spin','Syncing…');
+  if(!isCfg()||!getToken()){setSyncStatus('offline','Not connected');return;}
+  setSyncStatus('spin','Loading…');
   try{
-    const r=await fetch(`https://api.jsonbin.io/v3/b/${bin}/latest`,{headers:{'X-Master-Key':key}});
-    if(!r.ok){setSS('err','Sync failed');return;}
-    const d=await r.json();
-    if(d.record){DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d.record};loadCats();save(false);}
-    setSS('ok','Synced '+new Date().toLocaleTimeString());render();
-  }catch(e){setSS('err','Offline');}
+    const fid=await ensureFileId();if(!fid){setSyncStatus('err','File error');return;}
+    const r=await dfetch('https://www.googleapis.com/drive/v3/files/'+fid+'?alt=media',{method:'GET'});
+    if(!r){return;}
+    if(r.ok){
+      const txt=await r.text();
+      const hasLocal=Object.keys(DATA.tasks||{}).length>0||Object.keys(DATA.goals||{}).length>0||(DATA.recurring||[]).length>0;
+      if(txt.trim()){
+        const d=JSON.parse(txt);
+        DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};loadCats();
+        save(false);
+        setSyncStatus('ok','Synced '+new Date().toLocaleTimeString());
+      } else if(hasLocal){
+        // Drive file is empty but local has data -> push local up
+        setSyncStatus('spin','Uploading local data…');
+        await saveToDrive();
+      } else {
+        setSyncStatus('ok','Synced (empty) '+new Date().toLocaleTimeString());
+      }
+      render();
+    }else setSyncStatus('err','Load failed ('+r.status+')');
+  }catch(e){setSyncStatus('err','Load error');console.error(e);}
 }
 
-async function createBin(key){
-  const r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':key,'X-Bin-Name':'life-tracker'},body:JSON.stringify(DATA)});
-  if(!r.ok)return null;
-  const d=await r.json();return d.metadata&&d.metadata.id;
-}
-
-async function signIn(){
-  const key=prompt('Paste your JSONBin API Key:\n\n1. Go to jsonbin.io → Sign up free\n2. Account → API Keys → copy Secret Key\n3. Paste it here',getJ().key||'');
-  if(!key||!key.trim()){return;}
-  const k=key.trim();
-  let bin=getJ().bin;
-  if(!bin){
-    setSS('spin','Creating storage…');
-    bin=await createBin(k);
-    if(!bin){alert('Invalid API key or network error. Check your key and try again.');setSS('err','Failed');renderAuthBar();return;}
+// ── OAuth via GIS popup ──
+function signIn(silent){
+  if(!isCfg()){showSetupPanel();return;}
+  if(!window.google||!google.accounts||!google.accounts.oauth2){
+    setSyncStatus('err','Google library not loaded yet — please retry in a moment');
+    return;
   }
-  localStorage.setItem('lft_jkey',k);
-  localStorage.setItem('lft_jbin',bin);
-  localStorage.setItem('lft_user','JSONBin synced');
-  _user='JSONBin synced';
-  setSS('ok','Connected');
-  renderAuthBar();
-  await loadFromDrive();
+  google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,scope:SCOPES,
+    callback:async(resp)=>{
+      if(resp.error||!resp.access_token){
+        if(silent){setSyncStatus('err','Session expired — click sign in');renderAuthBar();return;}
+        setSyncStatus('err','Auth failed: '+(resp.error||'no token'));return;
+      }
+      setToken(resp.access_token);
+      // get user email
+      try{const r=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+resp.access_token}});const u=await r.json();_user=u.email||'Connected';localStorage.setItem('lft_user',_user);}catch(e){_user='Connected';}
+      setSyncStatus('ok','Connected');
+      await loadFromDrive();
+      renderAuthBar();
+    }
+  }).requestAccessToken({prompt:silent?'':'consent'});
 }
 
 function signOut(){
-  localStorage.removeItem('lft_jkey');localStorage.removeItem('lft_jbin');localStorage.removeItem('lft_user');
-  _user='';setSS('','');renderAuthBar();
+  const t=getToken();
+  if(t&&window.google)google.accounts.oauth2.revoke(t,()=>{});
+  setToken(null);_fileId=null;_user='';
+  localStorage.removeItem('lft_user');
+  setSyncStatus('offline','Signed out');renderAuthBar();
 }
 
-function schedSave(){clearTimeout(_stimer);_stimer=setTimeout(saveToDrive,2500);}
+function scheduleDriveSave(){clearTimeout(_timer);_timer=setTimeout(saveToDrive,2500);}
 
 function renderAuthBar(){
   const bar=document.getElementById('auth-bar');if(!bar)return;
-  _user=localStorage.getItem('lft_user')||'';
-  const signed=isCfg();
+  const signed=!!getToken();
+  _user=_user||localStorage.getItem('lft_user')||'';
+  if(!isCfg()){
+    bar.innerHTML=`<button class="gbtn" onclick="showSetupPanel()" style="color:var(--am);border-color:var(--am)">⚠️ Setup cloud sync</button>`;return;
+  }
   bar.innerHTML=signed
-    ?`<div style="display:flex;align-items:center;gap:5px">
-        <div id="sd" class="sync-dot sok"></div>
-        <span id="sl2" style="font-size:11px;color:var(--tx2)">${_user}</span>
-        <button class="tbtn" onclick="loadFromDrive()">⟳ Sync</button>
-        <button class="tbtn" onclick="signOut()">↪</button></div>`
-    :`<button onclick="signIn()" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;border:1.5px solid var(--bl);border-radius:6px;padding:4px 10px;background:var(--bld);color:var(--bl);cursor:pointer">☁️ Setup Sync</button>`;
+    ?`<div class="sync-dot" id="sd" style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--gr)"></div>
+       <span id="sl2" style="font-size:11px;color:var(--tx2);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_user}</span>
+       <button class="gbtn" onclick="loadFromDrive()" title="Sync">⟳</button>
+       <button class="gbtn" onclick="signOut()" title="Sign out">↪</button>`
+    :`<button class="gbtn" onclick="signIn()" style="color:var(--bl);border-color:var(--bl)">🔑 Google Drive</button>`;
 }
-// ─── DATA ────// ─── DATA ────────────────────────────────────────────────────────
-const SK='lft_v8';
-let DATA={goals:{},tasks:{},recurring:[],recurDone:{}};
-function save(sync=true){try{localStorage.setItem(SK,JSON.stringify(DATA));}catch(e){}if(sync)schedSave();}
-function load(){try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};}}catch(e){}loadCats();}
-function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'}));a.download='life-tracker-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
-function importData(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};loadCats();save();render();alert('Imported!');}catch(x){alert('Invalid file');}};r.readAsText(e.target.files[0]);};i.click();}
-function toggleTheme(){document.body.classList.toggle('light');const l=document.body.classList.contains('light');localStorage.setItem('lft_theme',l?'light':'dark');document.getElementById('themeBtn').textContent=l?'🌙':'☀️';}
-// ─── CONSTANTS ───────────────────────────────────────────────────
+
+// ── Setup panel ──
+function showSetupPanel(){
+  let p=document.getElementById('setupPanel');
+  if(p){p.style.display='block';return;}
+  const cur=localStorage.getItem('lft_client_id')||'';
+  const usingDefault=CLIENT_ID===DEFAULT_CLIENT_ID&&!cur;
+  p=document.createElement('div');
+  p.id='setupPanel';
+  p.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px';
+  p.innerHTML=`<div style="max-width:520px;width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:22px;color:var(--tx);max-height:90vh;overflow:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:16px;font-weight:800">☁️ Cloud sync setup</div>
+      <button class="gbtn" onclick="hideSetupPanel()">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.55">Life Tracker keeps everything in your own Google Drive (a private hidden folder only this app can read). You need a free <b>OAuth Client ID</b> from Google. Setup takes ~3 minutes.</p>
+    <ol style="font-size:12px;color:var(--tx2);padding-left:20px;line-height:1.7;margin-bottom:14px">
+      <li>Go to <a href="https://console.cloud.google.com/" target="_blank" style="color:var(--bl)">Google Cloud Console</a>, create a project.</li>
+      <li>Enable the <a href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank" style="color:var(--bl)">Google Drive API</a>.</li>
+      <li><a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" style="color:var(--bl)">OAuth consent screen</a> → External → add your email under <b>Test users</b>.</li>
+      <li><a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--bl)">Credentials</a> → Create Credentials → OAuth client ID → Web application.<br/>
+        Authorized JavaScript origins: <code style="background:var(--sf2);padding:1px 5px;border-radius:3px">${location.origin}</code></li>
+      <li>Copy the generated Client ID and paste it below.</li>
+    </ol>
+    <label style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em">Your Client ID</label>
+    <input id="cidIn" type="text" placeholder="123-abc.apps.googleusercontent.com" value="${cur.replace(/"/g,'&quot;')}" style="width:100%;font-size:12px;color:var(--tx);background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;margin-top:5px;margin-bottom:12px;font-family:monospace"/>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="ab" onclick="setClientId(document.getElementById('cidIn').value)">Save &amp; use</button>
+      <button class="gbtn" onclick="setClientId('')" title="Forget custom Client ID and use the default if any">Reset to default</button>
+      <div style="flex:1"></div>
+      <button class="gbtn" onclick="hideSetupPanel()">Skip — use local only</button>
+    </div>
+    ${usingDefault?'<p style="font-size:10px;color:var(--tx3);margin-top:10px">Currently using the bundled default Client ID. If sign-in fails with "origin_mismatch" or "access_denied", create your own Client ID using the steps above.</p>':''}
+  </div>`;
+  document.body.appendChild(p);
+}
+function hideSetupPanel(){const p=document.getElementById('setupPanel');if(p)p.style.display='none';}
+
+// Auto-reconnect on load if token exists. If token is expired/invalid,
+// silently try to get a fresh one via GIS so the user doesn't have to click.
+async function tryAutoLogin(){
+  if(!isCfg())return;
+  const t=getToken();
+  _user=localStorage.getItem('lft_user')||'';
+  if(t){
+    setSyncStatus('spin','Reconnecting…');
+    // Probe token validity with a cheap call
+    try{
+      const r=await fetch('https://www.googleapis.com/oauth2/v3/tokeninfo?access_token='+encodeURIComponent(t));
+      if(r.ok){await loadFromDrive();return;}
+    }catch(e){}
+    // Token bad -> try silent reauth via GIS
+    setToken(null);
+  }
+  // Silent attempt if we have a known user — GIS will pop only if needed
+  if(_user&&window.google&&google.accounts&&google.accounts.oauth2){
+    setSyncStatus('spin','Reconnecting…');
+    signIn(true);
+  }
+}
+// Wait for GIS library to load before attempting auto-login
+function waitForGis(cb,tries){
+  tries=tries||0;
+  if(window.google&&google.accounts&&google.accounts.oauth2){cb();return;}
+  if(tries>40){setSyncStatus('err','Google library failed to load');renderAuthBar();return;}
+  setTimeout(()=>waitForGis(cb,tries+1),150);
+}
+// ── END GOOGLE DRIVE SYNC ───────────────────────────────────────
+
 const DEFAULT_CATS=[
   {id:'personal',l:'Personal',i:'👤',c:'#a78bfa'},
   {id:'health',l:'Health',i:'💪',c:'#4ade80'},
@@ -191,76 +371,80 @@ const DEFAULT_CATS=[
   {id:'branding',l:'Branding',i:'⭐',c:'#fb923c'},
   {id:'content',l:'Content',i:'✏️',c:'#f472b6'},
 ];
-const COLORS=['#a78bfa','#4ade80','#fbbf24','#60a5fa','#fb923c','#f472b6','#34d399','#f87171','#818cf8','#fb7185','#38bdf8','#a3e635'];
-const ICONS=['👤','💪','💰','✈️','⭐','✏️','🏠','📊','🎯','🔥','💡','🎓','🤝','🧠','📱','🏋️'];
-let CATS=[];
-function loadCats(){CATS=DATA.cats&&DATA.cats.length?DATA.cats:JSON.parse(JSON.stringify(DEFAULT_CATS));}
-function saveCats(){DATA.cats=CATS;save();}
+let CATS=[...DEFAULT_CATS];
+const ICON_LIST=['👤','💪','💰','✈️','⭐','✏️','🏠','🏋️','📊','🎯','🔥','💡','🎓','🤝','🧠','📱','🛒','🎨','📚','💼','🏦','🌱','🎵','🍎'];
+const CLR_LIST=['#a78bfa','#4ade80','#fbbf24','#60a5fa','#fb923c','#f472b6','#34d399','#f87171','#818cf8','#38bdf8'];
+function loadCats(){CATS=(DATA.cats&&DATA.cats.length)?DATA.cats.map(c=>({...c})):[...DEFAULT_CATS];}
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MF=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DH=['Mo','Tu','We','Th','Fr','Sa','Su'];
 const TODAY=new Date(),TY=TODAY.getFullYear(),TM=TODAY.getMonth(),TD=TODAY.getDate();
 const YEARS=Array.from({length:10},(_,i)=>TY-2+i);
+const SK='lft_v7';
 const P=n=>String(n).padStart(2,'0');
 const dk=(y,m,d)=>`${y}-${P(m+1)}-${P(d)}`;
 const mk=(y,m)=>`${y}-${P(m+1)}`;
 const smk=(y,s)=>`${y}-S${s+1}`;
 const qk=(y,q)=>`${y}-Q${q}`;
 const wk=(y,m,w)=>`${y}-${P(m+1)}-W${w}`;
-const TDAY=dk(TY,TM,TD);
 const daysIn=(y,m)=>new Date(y,m+1,0).getDate();
 const firstMon=(y,m)=>(new Date(y,m,1).getDay()+6)%7;
-function mkeys(y,m){return Array.from({length:daysIn(y,m)},(_,i)=>dk(y,m,i+1));}
-function ykeys(y){let k=[];for(let m=0;m<12;m++)k=[...k,...mkeys(y,m)];return k;}
-function smkeys(y,s){let k=[];for(let m=s*6;m<s*6+6;m++)k=[...k,...mkeys(y,m)];return k;}
-function qkeys(y,q){let k=[];for(let m=(q-1)*3;m<q*3;m++)k=[...k,...mkeys(y,m)];return k;}
+function mkeys(y,m){return Array.from({length:daysIn(y,m)},(_,i)=>dk(y,m,i+1))}
+function ykeys(y){let k=[];for(let m=0;m<12;m++)k=[...k,...mkeys(y,m)];return k}
+function smkeys(y,s){let k=[];for(let m=s*6;m<s*6+6;m++)k=[...k,...mkeys(y,m)];return k}
+function qkeys(y,q){let k=[];for(let m=(q-1)*3;m<q*3;m++)k=[...k,...mkeys(y,m)];return k}
 function weekRanges(y,m){const fd=firstMon(y,m),days=daysIn(y,m),rs=[];let s=1,w=1;while(s<=days){const dow=(fd+s-1)%7;const e=Math.min(s+(6-dow),days);rs.push({w,start:s,end:e});s=e+1;w++;}return rs;}
 function weekOfDay(y,m,d){return weekRanges(y,m).find(w=>d>=w.start&&d<=w.end);}
-function stats(tasks,keys){let tot=0,done=0,miss=0;keys.forEach(k=>(tasks[k]||[]).forEach(t=>{tot++;if(t.done)done++;else if(!t.carried&&k<TDAY)miss++;}));return{tot,done,miss,pct:tot?Math.round(done/tot*100):0};}
-function catStat(tasks,keys,cid){const all=keys.flatMap(k=>(tasks[k]||[]).filter(t=>t.cat===cid));const d=all.filter(t=>t.done).length;return{tot:all.length,done:d,pct:all.length?Math.round(d/all.length*100):0};}
-// ─── GOALS ───────────────────────────────────────────────────────
-function getGO(key,cat){const v=(DATA.goals[key]||{})[cat];if(!v)return{items:[]};if(typeof v==='string')return{items:[{text:v,done:false}]};if(v.text!==undefined)return{items:[{text:v.text||'',done:!!v.done}]};return{items:[],...v};}
-function saveGO(key,cat,obj){if(!DATA.goals[key])DATA.goals[key]={};DATA.goals[key][cat]=obj;save();}
-function toggleGI(key,cat,idx){const o=getGO(key,cat);if(o.items[idx])o.items[idx].done=!o.items[idx].done;saveGO(key,cat,o);render();}
-function setGIT(key,cat,idx,text){const o=getGO(key,cat);if(o.items[idx])o.items[idx].text=text;saveGO(key,cat,o);}
-function addGIT(key,cat,text){const o=getGO(key,cat);o.items.push({text,done:false});saveGO(key,cat,o);render();}
-function delGI(key,cat,idx){const o=getGO(key,cat);o.items.splice(idx,1);saveGO(key,cat,o);render();}
-// ─── TASKS ───────────────────────────────────────────────────────
-function getDT(dkey){
+const TDAY=dk(TY,TM,TD);
+function isPast(dkey){return dkey<TDAY;}
+function stats(tasks,keys){let tot=0,done=0,miss=0;keys.forEach(k=>(tasks[k]||[]).forEach(t=>{tot++;if(t.done)done++;else if(!t.carried&&isPast(k))miss++;}));return{tot,done,miss,pct:tot?Math.round(done/tot*100):0};}
+function catStat(tasks,keys,cid){const all=keys.flatMap(k=>(tasks[k]||[]).filter(t=>t.cat===cid));const done=all.filter(t=>t.done).length;return{tot:all.length,done,pct:all.length?Math.round(done/all.length*100):0};}
+// Multi-goal per category: {items:[{text,done}]}
+function getGoalObj(key,cat){const v=(DATA.goals[key]||{})[cat];if(!v)return{items:[]};if(typeof v==='string')return{items:[{text:v,done:false}]};if(v.text!==undefined)return{items:[{text:v.text||'',done:!!v.done}]};return{items:[],...v};}
+function saveGoalObj(key,cat,obj){if(!DATA.goals[key])DATA.goals[key]={};DATA.goals[key][cat]=obj;save();}
+function toggleGoalItem(key,cat,idx){const o=getGoalObj(key,cat);if(o.items[idx])o.items[idx].done=!o.items[idx].done;saveGoalObj(key,cat,o);render();}
+function setGoalItemText(key,cat,idx,text){const o=getGoalObj(key,cat);if(o.items[idx])o.items[idx].text=text;else o.items.push({text,done:false});saveGoalObj(key,cat,o);}
+function addGoalItem(key,cat){const o=getGoalObj(key,cat);o.items.push({text:'',done:false});saveGoalObj(key,cat,o);render();}
+function addGoalItemText(key,cat,text){const o=getGoalObj(key,cat);o.items.push({text,done:false});saveGoalObj(key,cat,o);render();}
+function delGoalItem(key,cat,idx){const o=getGoalObj(key,cat);o.items.splice(idx,1);saveGoalObj(key,cat,o);render();}
+function getGoal(key,cat){const o=getGoalObj(key,cat);return{text:o.items.map(i=>i.text).join('\n'),done:o.items.length>0&&o.items.every(i=>i.done)};}
+function setGoalText(key,cat,text){if(!text.trim())return;const o=getGoalObj(key,cat);if(!o.items.length)o.items=[{text,done:false}];else o.items[o.items.length-1].text=text;saveGoalObj(key,cat,o);}
+function toggleGoalDone(key,cat){const o=getGoalObj(key,cat);const all=o.items.every(i=>i.done);o.items=o.items.map(i=>({...i,done:!all}));saveGoalObj(key,cat,o);render();}
+
+let DATA={goals:{},tasks:{},recurring:[],recurDone:{}};
+let VIEW='home',VY=TY,VM=TM,SEL=null;
+let NT={cat:'health',title:'',time:'',recur:false,until:''};
+
+function save(syncDrive=true){try{localStorage.setItem(SK,JSON.stringify(DATA));}catch(e){}if(syncDrive)scheduleDriveSave();}
+function load(){try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};}}catch(e){}loadCats();}
+
+function getDayTasks(dkey){
   const reg=DATA.tasks[dkey]||[];
-  const rec=(DATA.recurring||[]).filter(r=>dkey>=r.startDate&&(!r.until||dkey<=r.until)).map(r=>({...r,id:'r_'+r.id,isRec:true,done:!!(DATA.recurDone[r.id+'_'+dkey])}));
+  const rec=(DATA.recurring||[]).filter(r=>dkey>=r.startDate&&(!r.until||dkey<=r.until))
+    .map(r=>({...r,id:'r_'+r.id,isRec:true,done:!!(DATA.recurDone[r.id+'_'+dkey])}));
   return [...reg,...rec];
 }
 function addTask(dkey,t){
-  if(t.recur){if(!DATA.recurring)DATA.recurring=[];DATA.recurring.push({...t,id:Date.now()+Math.random(),startDate:dkey,until:t.until||''});}
+  if(t.recur){DATA.recurring.push({...t,id:Date.now()+Math.random(),startDate:dkey,until:t.until||''});}
   else{if(!DATA.tasks[dkey])DATA.tasks[dkey]=[];DATA.tasks[dkey].push({...t,id:Date.now()+Math.random(),done:false,carried:false});}
-  const pts=dkey.split('-');const wy=parseInt(pts[0]),wm=parseInt(pts[1])-1,wd=parseInt(pts[2]);
-  const wr=weekOfDay(wy,wm,wd);if(wr){const wkey=wk(wy,wm,wr.w);const o=getGO(wkey,t.cat);if(!o.items.some(i=>i.text===t.title)){o.items.push({text:t.title,done:false});saveGO(wkey,t.cat,o);}}
+  // Auto-add task title as a new goal item to the week's category
+  const parts=dkey.split('-');const y=parseInt(parts[0]),m=parseInt(parts[1])-1,d=parseInt(parts[2]);
+  const wr=weekOfDay(y,m,d);if(wr){const wkey=wk(y,m,wr.w);const o=getGoalObj(wkey,t.cat);if(!o.items.some(i=>i.text===t.title)){o.items.push({text:t.title,done:false});saveGoalObj(wkey,t.cat,o);}}
   save();
-  if(t.time&&!t.recur){const[hh,mm]=t.time.split(':');const s=`${pts[0]}${pts[1]}${pts[2]}T${P(hh)}${P(mm)}00`;const e=`${pts[0]}${pts[1]}${pts[2]}T${P(Math.min(23,parseInt(hh)+1))}${P(mm)}00`;window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(t.title)}&dates=${s}/${e}`,'_blank');}
+  // Auto open google calendar if time set
+  if(t.time&&!t.recur){const[hh,mm]=t.time.split(':');const P2=n=>String(n).padStart(2,'0');const y2=parts[0],mo=parts[1],da=parts[2];const s=y2+mo+da+'T'+P2(hh)+P2(mm)+'00';const e=y2+mo+da+'T'+P2(Math.min(23,parseInt(hh)+1))+P2(mm)+'00';window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(t.title)+'&dates='+s+'/'+e,'_blank');}
   render();
 }
 function toggleTask(dkey,id){
   const sid=String(id);
   if(sid.startsWith('r_')){const rid=sid.slice(2);DATA.recurDone[rid+'_'+dkey]=!DATA.recurDone[rid+'_'+dkey];}
-  else if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].map(t=>t.id==id?{...t,done:!t.done}:t);
+  else{if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].map(t=>t.id==id?{...t,done:!t.done}:t);}
   save();render();
-}
-let EDIT=null; // {dkey, id}
-function startEdit(dkey,id){EDIT={dkey,id};render();}
-function cancelEdit(){EDIT=null;render();}
-function saveEdit(dkey,id){
-  const t=document.getElementById('et').value.trim();
-  const ti=document.getElementById('eti').value;
-  const cat=document.getElementById('ecat').value;
-  if(!t)return;
-  if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].map(tk=>tk.id==id?{...tk,title:t,time:ti,cat}:tk);
-  save();EDIT=null;render();
 }
 function delTask(dkey,id){
   const sid=String(id);
-  if(sid.startsWith('r_'))DATA.recurring=DATA.recurring.filter(r=>String(r.id)!==sid.slice(2));
-  else if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].filter(t=>t.id!=id);
+  if(sid.startsWith('r_')){DATA.recurring=DATA.recurring.filter(r=>String(r.id)!==sid.slice(2));}
+  else{if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].filter(t=>t.id!=id);}
   save();render();
 }
 function carryPeriod(srcKeys,dstKey){
@@ -268,115 +452,169 @@ function carryPeriod(srcKeys,dstKey){
   if(!missed.length){alert('No missed tasks to carry');return;}
   if(!DATA.tasks[dstKey])DATA.tasks[dstKey]=[];
   missed.forEach(t=>DATA.tasks[dstKey].push({...t,id:Date.now()+Math.random(),carried:true,done:false}));
-  srcKeys.forEach(k=>DATA.tasks[k]=(DATA.tasks[k]||[]).map(t=>!t.done?{...t,carried:true}:t));
-  save();render();alert('Carried '+missed.length+' tasks');
+  srcKeys.forEach(k=>{DATA.tasks[k]=(DATA.tasks[k]||[]).map(t=>!t.done?{...t,carried:true}:t);});
+  save();render();alert('Carried '+missed.length+' task(s)');
 }
-function carryDay(){const pd=new Date(TODAY);pd.setDate(pd.getDate()-1);carryPeriod([dk(pd.getFullYear(),pd.getMonth(),pd.getDate())],TDAY);}
+function carryDay(){const pd=new Date(TODAY);pd.setDate(pd.getDate()-1);carryPeriod([dk(pd.getFullYear(),pd.getMonth(),pd.getDate())],dk(TY,TM,TD));}
 function carryMonth(){const pm=VM===0?11:VM-1,py=VM===0?VY-1:VY;carryPeriod(mkeys(py,pm),dk(VY,VM,1));}
-function carryQ(){const cq=Math.ceil((VM+1)/3),pq=cq===1?4:cq-1,py=pq===4&&cq===1?VY-1:VY;carryPeriod(qkeys(py,pq),qkeys(VY,cq)[0]);}
 function carrySem(){const s=VM<6?1:0,sy=VM<6?VY-1:VY;carryPeriod(smkeys(sy,s),smkeys(VY,VM<6?0:1)[0]);}
 function carryYear(){carryPeriod(ykeys(VY-1),dk(VY,0,1));}
-// ─── HELPERS ─────────────────────────────────────────────────────
-let VIEW='home',VY=TY,VM=TM,SEL=null,NT={cat:'health',title:'',time:'',recur:false,until:''};
-const pills=s=>`<span class="sp sg">✓${s.done}</span><span class="sp sr" style="margin-left:4px">✗${s.miss}</span><span class="sc" style="margin-left:6px">${s.pct}%</span>`;
-const pb=(pct,col)=>`<div class="pbar"><div class="pf" style="width:${pct}%;background:${col||'var(--gr)'}"></div></div>`;
-const xb=(l,fn)=>`<button class="xb" onclick="${fn}">${l}</button>`;
+function carryQ(){const cq=Math.ceil((VM+1)/3);const pqn=cq===1?4:cq-1;const py=pqn===4&&cq===1?VY-1:VY;const dst=qkeys(VY,cq)[0];carryPeriod(qkeys(py,pqn),dst);alert('Carried from Q'+pqn+' to Q'+cq);}
+function carryW(){const cw=weekOfDay(VY,VM,SEL||TD);if(!cw)return;const pw=weekRanges(VY,VM).find(w=>w.w===cw.w-1);if(!pw){alert('No previous week');return;}const sk=Array.from({length:pw.end-pw.start+1},(_,i)=>dk(VY,VM,pw.start+i));carryPeriod(sk,dk(VY,VM,cw.start));}
+
+// Helpers
+function pills(s){return `<span class="sp sg">✓${s.done}</span><span class="sp sr" style="margin-left:4px">✗${s.miss}</span><span class="sc" style="margin-left:6px">${s.pct}%</span>`;}
+function pb(pct,col){return `<div class="pbar"><div class="pf" style="width:${pct}%;background:${col||'var(--gr)'}"></div></div>`;}
+function pct_lbl(pct){return `<div style="font-size:8px;color:var(--tx3);text-align:right;margin-top:2px">${pct}% tasks</div>`;}
 function catBars(keys){return CATS.map(c=>{const cs=catStat(DATA.tasks,keys,c.id);if(!cs.tot)return'';return `<div class="cbr"><span class="cbn">${c.i} ${c.l}</span><div class="cbt"><div class="cbf" style="width:${cs.pct}%;background:${c.c}"></div></div><span class="cbp">${cs.pct}%</span></div>`;}).join('');}
-function sumBox(s,keys){return `<div class="sb"><div class="sn"><div><div class="snum">${s.tot}</div><div class="slb">Total</div></div><div><div class="snum" style="color:var(--gr)">${s.done}</div><div class="slb">Done</div></div><div><div class="snum" style="color:var(--rd)">${s.miss}</div><div class="slb">Missed</div></div><div><div class="snum">${s.pct}%</div><div class="slb">Goal%</div></div></div>${catBars(keys)}</div>`;}
+function xbtn(label,fn,title){return `<button class="xb" onclick="${fn}" title="${title}">${label}</button>`;}
+
 function goalCard(gkey,c,label,pkeys,parentHtml){
-  const o=getGO(gkey,c.id);
-  const gd=o.items.filter(i=>i.done).length,gt=o.items.length;
-  const gpct=gt?Math.round(gd/gt*100):0;
+  const o=getGoalObj(gkey,c.id);
+  const done=o.items.filter(i=>i.done).length,tot=o.items.length;
+  const gpct=tot?Math.round(done/tot*100):0;
   const tpct=pkeys?catStat(DATA.tasks,pkeys,c.id).pct:null;
   const eid='gi_'+gkey.replace(/[^a-z0-9]/gi,'_')+'_'+c.id;
-  let rows=o.items.map((it,idx)=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
-    <div onclick="toggleGI('${gkey}','${c.id}',${idx})" style="flex-shrink:0;width:13px;height:13px;border-radius:50%;border:2px solid ${c.c};background:${it.done?c.c:'transparent'};cursor:pointer;transition:background .2s"></div>
-    <input value="${it.text.replace(/"/g,'&quot;')}" onblur="setGIT('${gkey}','${c.id}',${idx},this.value)" style="flex:1;font-size:11px;color:${it.done?'var(--tx3)':'var(--tx)'};text-decoration:${it.done?'line-through':'none'};background:none;border:none;outline:none"/>
-    <button onclick="delGI('${gkey}','${c.id}',${idx})" style="font-size:10px;color:var(--tx3)">✕</button>
-  </div>`).join('');
-  const gbar=gt?`<div style="display:flex;align-items:center;gap:5px;margin-top:4px"><div style="flex:1;height:3px;background:var(--bd);border-radius:2px"><div style="height:3px;width:${gpct}%;background:${c.c};border-radius:2px"></div></div><span style="font-size:9px;color:var(--tx3)">${gd}/${gt} ${gpct}%</span></div>`:'';
-  const tbar=tpct!==null?`<div style="display:flex;align-items:center;gap:5px;margin-top:2px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${tpct}%;background:${c.c};opacity:.5;border-radius:2px"></div></div><span style="font-size:9px;color:var(--tx3)">${tpct}% tasks</span></div>`:'';
+  let items='';
+  o.items.forEach((it,idx)=>{
+    const es=it.text.replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    items+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+      <div onclick="toggleGoalItem('${gkey}','${c.id}',${idx})" title="${it.done?'Unmark':'Complete'}" style="flex-shrink:0;width:13px;height:13px;border-radius:50%;border:2px solid ${c.c};background:${it.done?c.c:'transparent'};cursor:pointer;transition:background .2s"></div>
+      <input value="${es}" onblur="setGoalItemText('${gkey}','${c.id}',${idx},this.value)" style="flex:1;font-size:11px;color:${it.done?'var(--tx3)':'var(--tx)'};text-decoration:${it.done?'line-through':'none'};background:none;border:none;outline:none"/>
+      <button onclick="delGoalItem('${gkey}','${c.id}',${idx})" style="font-size:10px;color:var(--tx3)">✕</button>
+    </div>`;
+  });
+  // Goal completion bar
+  const gbar=tot?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><div style="flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden"><div style="height:3px;width:${gpct}%;background:${c.c};border-radius:2px;transition:width .3s"></div></div><span style="font-size:9px;color:var(--tx3)">${done}/${tot} goals ${gpct}%</span></div>`:'';
+  const tbar=tpct!==null?`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="flex:1;height:3px;background:var(--bd);border-radius:2px;overflow:hidden"><div style="height:3px;width:${tpct}%;background:${c.c};opacity:.5;border-radius:2px"></div></div><span style="font-size:9px;color:var(--tx3)">${tpct}% tasks</span></div>`:'';
   return `<div class="gc" style="border-left:2px solid ${c.c}">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
       <span style="font-size:10px;font-weight:600;color:${c.c}">${c.i} ${c.l}</span>
       <span style="font-size:9px;color:var(--tx3)">${label}</span>
     </div>
-    ${parentHtml||''}${rows||'<div style="font-size:10px;color:var(--tx3);font-style:italic;margin-bottom:3px">No goals</div>'}
-    <div style="display:flex;align-items:center;gap:4px;margin-top:5px">
-      <input id="${eid}" type="text" placeholder="+ Add goal, Enter" style="flex:1;font-size:10px;color:var(--tx2);background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:3px 6px" onkeydown="if(event.key==='Enter'&&this.value.trim()){addGIT('${gkey}','${c.id}',this.value.trim());this.value='';event.preventDefault();}"/>
+    ${parentHtml||''}
+    ${items}
+    <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+      <input id="${eid}" type="text" placeholder="+ Add goal, press Enter" style="flex:1;font-size:10px;color:var(--tx2);background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:3px 6px"
+        onkeydown="if(event.key==='Enter'&&this.value.trim()){addGoalItemText('${gkey}','${c.id}',this.value.trim());this.value='';event.preventDefault();}"/>
     </div>
     ${gbar}${tbar}
   </div>`;
 }
-function goalGrid(gkey,label,pkeys,parents){
+function goalGrid(gkey,label,pkeys,parentGoalKeys){
+  // parentGoalKeys: array of {key,label} for read-only parent goals shown above
   return `<div class="gg">${CATS.map(c=>{
-    let ph='';
-    if(parents&&parents.length){
-      ph='<div style="border-bottom:1px solid var(--bd);margin-bottom:6px;padding-bottom:5px">';
-      parents.forEach(p=>{const po=getGO(p.key,c.id);if(po.items.length){ph+=`<div style="font-size:9px;color:var(--tx3);font-weight:600;margin-bottom:2px">${p.label}</div>`;po.items.forEach(it=>{ph+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:1px"><div style="width:9px;height:9px;border-radius:50%;border:1.5px solid ${c.c};background:${it.done?c.c:'transparent'};flex-shrink:0"></div><span style="font-size:9px;color:${it.done?'var(--tx3)':'var(--tx2)'};text-decoration:${it.done?'line-through':'none'}">${it.text.replace(/</g,'&lt;')}</span></div>`;});}});
-      ph+='</div>';
+    let parentHtml='';
+    if(parentGoalKeys&&parentGoalKeys.length){
+      parentHtml='<div style="border-bottom:1px solid var(--bd);margin-bottom:6px;padding-bottom:6px">';
+      parentGoalKeys.forEach(p=>{
+        const po=getGoalObj(p.key,c.id);
+        if(po.items.length){
+          parentHtml+=`<div style="font-size:9px;color:var(--tx3);font-weight:600;margin-bottom:2px">${p.label}</div>`;
+          po.items.forEach(it=>{
+            parentHtml+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:1px">
+              <div style="flex-shrink:0;width:9px;height:9px;border-radius:50%;border:1.5px solid ${c.c};background:${it.done?c.c:'transparent'}"></div>
+              <span style="font-size:9px;color:${it.done?'var(--tx3)':'var(--tx2)'};text-decoration:${it.done?'line-through':'none'}">${it.text.replace(/</g,'&lt;')}</span>
+            </div>`;
+          });
+        }
+      });
+      parentHtml+='</div>';
     }
-    return goalCard(gkey,c,label,pkeys,ph);
+    return goalCard(gkey,c,label,pkeys,parentHtml);
   }).join('')}</div>`;
 }
-// ─── VIEWS ───────────────────────────────────────────────────────
-// ─── CATEGORY MANAGEMENT ─────────────────────────────────────────
-function showCatManager(){
-  const existing=CATS.map((c,i)=>`
-    <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--bd)">
-      <select onchange="CATS[${i}].i=this.value" style="font-size:16px;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:2px 4px;width:54px">
-        ${ICONS.map(ic=>`<option${ic===c.i?' selected':''}>${ic}</option>`).join('')}
-      </select>
-      <input value="${c.l}" onblur="CATS[${i}].l=this.value" style="flex:1;font-size:13px;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:4px 8px;color:var(--tx)"/>
-      <input type="color" value="${c.c}" onchange="CATS[${i}].c=this.value" style="width:32px;height:28px;border:1px solid var(--bd);border-radius:5px;cursor:pointer;background:none;padding:1px"/>
-      <button onclick="removeCat(${i})" style="font-size:12px;color:var(--rd);cursor:pointer;padding:4px 6px;border:1px solid var(--rdd);border-radius:5px;background:var(--rdd)">✕</button>
-    </div>`).join('');
+
+function sumBox(s,keys){
+  return `<div class="sb"><div class="sn">
+    <div><div class="snum">${s.tot}</div><div class="slb">Total</div></div>
+    <div><div class="snum" style="color:var(--gr)">${s.done}</div><div class="slb">Done</div></div>
+    <div><div class="snum" style="color:var(--rd)">${s.miss}</div><div class="slb">Missed</div></div>
+    <div><div class="snum">${s.pct}%</div><div class="slb">Goal%</div></div>
+  </div>${catBars(keys)}</div>`;
+}
+
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  const light=document.body.classList.contains('light');
+  localStorage.setItem('lft_theme',light?'light':'dark');
+  const btn=document.querySelector('#toolbar button[title="Toggle theme"]');
+  if(btn)btn.textContent=light?'🌙':'☀️';
+}
+function exportData(){const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='life-tracker-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function importData(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};loadCats();save();render();alert('Imported successfully!');}catch(err){alert('Invalid file');}};r.readAsText(f);};inp.click();}
+// ── CATEGORY CRUD ──
+function showCatMgr(){
+  const rows=CATS.map((c,i)=>{
+    const ipk=ICON_LIST.map(ic=>`<span onclick="CATS[${i}].i='${ic}';document.getElementById('cico${i}').textContent='${ic}';this.parentNode.style.display='none'" style="cursor:pointer;font-size:16px;padding:2px">${ic}</span>`).join('');
+    return `<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--bd)">
+      <div style="position:relative">
+        <span id="cico${i}" onclick="var p=document.getElementById('cpk${i}');p.style.display=p.style.display==='flex'?'none':'flex'" style="font-size:20px;cursor:pointer;padding:2px 6px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px">${c.i}</span>
+        <div id="cpk${i}" style="display:none;position:absolute;top:32px;left:0;background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:6px;z-index:20;flex-wrap:wrap;gap:2px;width:210px">${ipk}</div>
+      </div>
+      <input value="${c.l.replace(/"/g,'&quot;')}" onblur="CATS[${i}].l=this.value" style="flex:1;font-size:12px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;color:var(--tx)"/>
+      <input type="color" value="${c.c}" onchange="CATS[${i}].c=this.value" style="width:30px;height:28px;border:1px solid var(--bd);border-radius:5px;cursor:pointer;padding:1px;background:none"/>
+      <button onclick="if(confirm('Remove ${c.l.replace(/'/g,"\'")}?')){CATS.splice(${i},1);showCatMgr();}" style="font-size:11px;color:var(--rd);border:1px solid var(--rdd);background:var(--rdd);border-radius:5px;padding:3px 8px;cursor:pointer">✕</button>
+    </div>`;
+  }).join('');
+  const nc=CLR_LIST[CATS.length%CLR_LIST.length];
+  const nipk=ICON_LIST.map(ic=>`<span onclick="document.getElementById('nwi').textContent='${ic}';document.getElementById('nipk').style.display='none'" style="cursor:pointer;font-size:18px;padding:2px">${ic}</span>`).join('');
   document.getElementById('R').innerHTML=`<div class="ai2">
-    <button class="bb" onclick="closeCatManager()">← Back</button>
-    <div class="tb"><div class="pt">Edit Categories</div></div>
-    <div class="sl">CATEGORIES (${CATS.length})</div>
-    <div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:16px">
-      ${existing}
-      <div style="display:flex;align-items:center;gap:6px;padding-top:10px;margin-top:4px">
-        <span style="font-size:13px;color:var(--tx3)">New:</span>
-        <input id="nc-icon" type="text" value="🎯" style="width:44px;font-size:16px;text-align:center;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:4px"/>
-        <input id="nc-name" type="text" placeholder="Category name…" style="flex:1;font-size:13px;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:4px 8px;color:var(--tx)"
-          onkeydown="if(event.key==='Enter')addCat()"/>
-        <input id="nc-color" type="color" value="${COLORS[CATS.length%COLORS.length]}" style="width:32px;height:28px;border:1px solid var(--bd);border-radius:5px;cursor:pointer;background:none;padding:1px"/>
-        <button onclick="addCat()" style="font-size:12px;background:var(--gd);color:var(--gr);border:1px solid var(--gd);border-radius:5px;padding:4px 10px;cursor:pointer;font-weight:600">+ Add</button>
+    <button class="bb" onclick="saveCatMgr()">← Save & Back</button>
+    <div class="tb"><div class="pt">Categories</div></div>
+    <div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px">
+      ${rows}
+      <div style="display:flex;align-items:center;gap:6px;padding-top:10px;flex-wrap:wrap">
+        <div style="position:relative">
+          <span id="nwi" onclick="document.getElementById('nipk').style.display=document.getElementById('nipk').style.display==='flex'?'none':'flex'" style="font-size:20px;cursor:pointer;padding:2px 6px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px">🎯</span>
+          <div id="nipk" style="display:none;position:absolute;top:32px;left:0;background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:8px;z-index:20;flex-wrap:wrap;gap:3px;width:220px">${nipk}</div>
+        </div>
+        <input id="nwn" type="text" placeholder="Category name…" style="flex:1;min-width:120px;font-size:12px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;color:var(--tx)" onkeydown="if(event.key==='Enter')addCat()"/>
+        <input id="nwc" type="color" value="${nc}" style="width:30px;height:28px;border:1px solid var(--bd);border-radius:5px;cursor:pointer;padding:1px;background:none"/>
+        <button onclick="addCat()" style="background:var(--gd);color:var(--gr);border:1px solid var(--gd);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer">+ Add</button>
       </div>
     </div>
-    <button onclick="saveCatManager()" style="width:100%;padding:10px;background:var(--gr);color:#0f0f0f;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✓ Save Categories</button>
-    <p style="font-size:11px;color:var(--tx3);margin-top:10px;text-align:center">Removing a category keeps its existing tasks &amp; goals — they just won't show in new views.</p>
+    <p style="font-size:11px;color:var(--tx3)">Click emoji to change icon. Removing a category keeps its existing data.</p>
   </div>`;
 }
 function addCat(){
-  const i=document.getElementById('nc-icon').value.trim()||'🎯';
-  const l=document.getElementById('nc-name').value.trim();
-  const c=document.getElementById('nc-color').value;
-  if(!l){alert('Enter a name');return;}
-  const id=l.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now();
-  CATS.push({id,l,i,c});showCatManager();
+  const i=document.getElementById('nwi').textContent.trim()||'🎯';
+  const l=document.getElementById('nwn').value.trim();
+  const c=document.getElementById('nwc').value;
+  if(!l)return;
+  CATS.push({id:l.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now(),l,i,c});
+  showCatMgr();
 }
-function removeCat(idx){if(!confirm('Remove "'+CATS[idx].l+'"?'))return;CATS.splice(idx,1);showCatManager();}
-function saveCatManager(){saveCats();render();alert('Categories saved!');}
-function closeCatManager(){render();}
+function saveCatMgr(){DATA.cats=CATS;save();render();}
+
+// ── TASK EDIT ──
+let EDIT_T=null;
+function startEditTask(dkey,id){EDIT_T={dkey,id};render();}
+function cancelEditTask(){EDIT_T=null;render();}
+function saveEditTask(dkey,id){
+  const t=document.getElementById('et').value.trim();if(!t)return;
+  const ti=document.getElementById('eti').value;
+  const cat=document.getElementById('ecat').value;
+  if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].map(tk=>tk.id==id?{...tk,title:t,time:ti,cat}:tk);
+  save();EDIT_T=null;render();
+}
 function render(){if(VIEW==='home')renderHome();else if(VIEW==='year')renderYear();else if(VIEW==='month')renderMonth();}
 
 function renderHome(){
   let h=`<div class="ai2"><div style="margin-bottom:22px"><div style="font-size:32px;font-weight:800;letter-spacing:-.02em">Life Tracker</div><p style="color:var(--tx2);font-size:13px;margin-top:3px">Click a year to explore goals &amp; tasks</p></div><div class="sl">10-YEAR OVERVIEW</div><div class="yg">`;
   YEARS.forEach(y=>{const s=stats(DATA.tasks,ykeys(y));const now=y===TY;h+=`<div class="yc${now?' now':''}" onclick="goYear(${y})"><div class="yn">${y}</div><div class="ym">${s.tot?s.pct+'% · '+s.done+'/'+s.tot+' tasks':'No tasks yet'}</div>${pb(s.pct)}</div>`;});
-  h+=`</div></div>`;document.getElementById('R').innerHTML=h;
+  h+=`</div>`;document.getElementById('R').innerHTML=h;
 }
 
 function renderYear(){
   const ys=stats(DATA.tasks,ykeys(VY));
   let h=`<div class="ai2"><button class="bb" onclick="goHome()">← Back</button>
-  <div class="tb"><div class="pt">${VY}</div>${pills(ys)}${xb('↺ Year','carryYear()')}</div>
-  <div class="sl">YEAR GOALS</div>${goalGrid(String(VY),'Year',ykeys(VY))}`;
+  <div class="tb"><div class="pt">${VY}</div>${pills(ys)}${xbtn('↺ Year','carryYear()','Carry missed from '+(VY-1))}</div>
+  <div class="sl">YEAR GOALS — click ● to complete</div>${goalGrid(String(VY),'Year',ykeys(VY))}`;
+
   [0,1].forEach(s=>{
     const skey=smk(VY,s),ss=stats(DATA.tasks,smkeys(VY,s));
-    h+=`<div class="sh"><span class="st">S${s+1} — ${s?'Jul–Dec':'Jan–Jun'}</span>${pills(ss)}${xb('↺ S'+(s+1),'carrySem()')}</div>`;
+    h+=`<div class="sh"><span class="st">S${s+1} — ${s?'Jul–Dec':'Jan–Jun'}</span>${pills(ss)}${xbtn('↺ S'+(s+1),'carrySem()','Carry missed from prev semester')}</div>`;
     h+=`<div class="sl">S${s+1} GOALS</div>${goalGrid(skey,'S'+(s+1),smkeys(VY,s),[{key:String(VY),label:'Year '+VY}])}`;
     (s?[3,4]:[1,2]).forEach(q=>{
       const qkey=qk(VY,q),qs=stats(DATA.tasks,qkeys(VY,q));
@@ -384,182 +622,215 @@ function renderYear(){
       h+=`<div class="sh" style="margin-top:8px"><span style="font-size:13px;font-weight:700;color:var(--tx2)">Q${q} — ${ql}</span>${pills(qs)}</div>`;
       h+=`<div class="sl">Q${q} GOALS</div>${goalGrid(qkey,'Q'+q,qkeys(VY,q),[{key:String(VY),label:'Year '+VY},{key:skey,label:'S'+(s+1)}])}`;
       h+=`<div class="mg">`;
-      Array.from({length:3},(_,i)=>i+(q-1)*3).forEach(m=>{const ms=stats(DATA.tasks,mkeys(VY,m)),now=VY===TY&&m===TM;h+=`<div class="mc${now?' mn':''}" onclick="goMonth(${m})"><div class="mcn">${MO[m]}</div><div class="mcp">${ms.tot?ms.pct+'%':'–'}</div>${pb(ms.pct)}</div>`;});
+      Array.from({length:3},(_,i)=>i+(q-1)*3).forEach(m=>{
+        const ms2=stats(DATA.tasks,mkeys(VY,m)),now=VY===TY&&m===TM;
+        h+=`<div class="mc${now?' mn':''}" onclick="goMonth(${m})"><div class="mcn">${MO[m]}</div><div class="mcp">${ms2.tot?ms2.pct+'%':'–'}</div>${pb(ms2.pct)}</div>`;
+      });
       h+=`</div>`;
     });
   });
-  h+=`<div class="sl">YEAR SUMMARY</div>${sumBox(ys,ykeys(VY))}</div>`;
+  h+=`<div class="sl" style="margin-top:8px">YEAR SUMMARY</div>${sumBox(ys,ykeys(VY))}`;
   document.getElementById('R').innerHTML=h;
 }
 
 function renderMonth(){
-  const snum=VM<6?1:2,qnum=Math.ceil((VM+1)/3);
-  const skey=smk(VY,VM<6?0:1),qkey=qk(VY,qnum),mkey=mk(VY,VM);
-  const yg=DATA.goals[String(VY)]||{};
   const ms=stats(DATA.tasks,mkeys(VY,VM));
   const fd=firstMon(VY,VM),days=daysIn(VY,VM);
   const dkey=SEL?dk(VY,VM,SEL):null;
-  const dayTasks=dkey?getDT(dkey):[];
+  const dayTasks=dkey?getDayTasks(dkey):[];
   const wrs=weekRanges(VY,VM);
   const todayW=VY===TY&&VM===TM?weekOfDay(TY,TM,TD):null;
   const selW=SEL?weekOfDay(VY,VM,SEL):null;
-  const hlW=selW||todayW;
+  const highlightW=selW||todayW;
 
   let h=`<div class="ai2"><button class="bb" onclick="goYear(${VY})">← ${VY}</button>
   <div class="tb"><div class="pt">${MF[VM]} ${VY}</div>${pills(ms)}
-  ${xb('↺ Month','carryMonth()')}${xb('↺ Q','carryQ()')}${xb('↺ Day','carryDay()')}</div>`;
+  ${xbtn('↺ Month','carryMonth()','Carry from last month')}${xbtn('↺ Q','carryQ()','Carry from last quarter')}${xbtn('↺ W','carryW()','Carry from last week')}${xbtn('↺ Day','carryDay()','Carry yesterday')}</div>`;
 
-  // GOAL HIERARCHY TABLE
-  h+=`<div class="sl">GOALS — Year → S${snum} → Q${qnum} → ${MO[VM]}</div>
-  <div style="overflow-x:auto;margin-bottom:20px"><table style="width:100%;font-size:11px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);border-collapse:collapse">
+  // GOAL HIERARCHY TABLE — shows Year(RO)+S+Q+Month with progress + circle
+  h+=`<div class="sl">GOAL HIERARCHY — Year → Semester → Quarter → Month</div>
+  <div style="overflow-x:auto;margin-bottom:20px">
+  <table style="width:100%;font-size:11px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r)">
   <thead><tr style="background:var(--sf2)">
-    <th style="padding:8px 10px;text-align:left;color:var(--tx3);white-space:nowrap">Cat</th>
-    <th style="padding:8px 10px;text-align:left;color:var(--tx3)">🏆 ${VY}</th>
+    <th style="padding:8px 10px;text-align:left;color:var(--tx3)">Cat</th>
+    <th style="padding:8px 10px;text-align:left;color:var(--tx3)">🏆 ${VY} <span style="font-weight:400;font-style:italic">(read-only)</span></th>
     <th style="padding:8px 10px;text-align:left;color:var(--tx3)">📘 S${snum}</th>
     <th style="padding:8px 10px;text-align:left;color:var(--tx3)">📊 Q${qnum}</th>
     <th style="padding:8px 10px;text-align:left;color:var(--tx3)">📅 ${MO[VM]}</th>
   </tr></thead><tbody>`;
+
   CATS.forEach((c,i)=>{
     const bg=i%2?'background:var(--sf2)':'';
-    function tcell(gk,pct,ro){
-      const o=getGO(gk,c.id),gd2=o.items.filter(i=>i.done).length,gt2=o.items.length,gpct2=gt2?Math.round(gd2/gt2*100):0;
+    const ypct=catStat(DATA.tasks,ykeys(VY),c.id).pct;
+    const spct=catStat(DATA.tasks,smkeys(VY,VM<6?0:1),c.id).pct;
+    const qpct=catStat(DATA.tasks,qkeys(VY,qnum),c.id).pct;
+    const mpct=catStat(DATA.tasks,mkeys(VY,VM),c.id).pct;
+    function tcell(gk,tpct,editable){
+      const o=getGoalObj(gk,c.id);
+      const gd=o.items.filter(i=>i.done).length,gt=o.items.length;
+      const gpct=gt?Math.round(gd/gt*100):0;
       const eid2='tc_'+gk.replace(/[^a-z0-9]/gi,'_')+'_'+c.id;
-      let rows2=o.items.map((it,idx)=>`<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
-        ${ro?'':`<div onclick="toggleGI('${gk}','${c.id}',${idx})" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:2px solid ${c.c};background:${it.done?c.c:'transparent'};cursor:pointer"></div>`}
+      let rows=o.items.map((it,idx)=>`<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
+        <div onclick="toggleGoalItem('${gk}','${c.id}',${idx})" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:2px solid ${c.c};background:${it.done?c.c:'transparent'};cursor:pointer"></div>
         <span style="font-size:10px;color:${it.done?'var(--tx3)':'var(--tx)'};text-decoration:${it.done?'line-through':'none'}">${it.text.replace(/</g,'&lt;')||'—'}</span>
       </div>`).join('');
-      const addRow=ro?'':`<input type="text" placeholder="+ goal, Enter" style="width:100%;font-size:9px;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:2px 5px;margin-top:3px;color:var(--tx)" onkeydown="if(event.key==='Enter'&&this.value.trim()){addGIT('${gk}','${c.id}',this.value.trim());this.value='';event.preventDefault();}"/>`;
-      const gbar2=gt2?`<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${gpct2}%;background:${c.c}"></div></div><span style="font-size:8px;color:var(--tx3)">${gpct2}%</span></div>`:'';
-      const tbar2=`<div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${pct}%;background:${c.c};opacity:.5"></div></div><span style="font-size:8px;color:var(--tx3)">${pct}% tasks</span></div>`;
-      return `<td style="padding:6px 10px;${bg};min-width:120px;vertical-align:top">${rows2||'<span style="font-size:9px;color:var(--tx3)">—</span>'}${addRow}${gbar2}${tbar2}</td>`;
+      const addRow=editable?`<input id="${eid2}" type="text" placeholder="+ goal, Enter" style="width:100%;font-size:9px;color:var(--tx3);background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:2px 5px;margin-top:3px" onkeydown="if(event.key==='Enter'&&this.value.trim()){addGoalItemText('${gk}','${c.id}',this.value.trim());this.value='';event.preventDefault();}"/>`:'';
+      const gbar=gt?`<div style="display:flex;align-items:center;gap:4px;margin-top:3px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${gpct}%;background:${c.c}"></div></div><span style="font-size:8px;color:var(--tx3)">${gpct}%</span></div>`:'';
+      const tbar=`<div style="display:flex;align-items:center;gap:4px;margin-top:2px"><div style="flex:1;height:2px;background:var(--bd);border-radius:2px"><div style="height:2px;width:${tpct}%;background:${c.c};opacity:.5"></div></div><span style="font-size:8px;color:var(--tx3)">${tpct}% tasks</span></div>`;
+      return `<td style="padding:6px 10px;${bg};min-width:130px;vertical-align:top">${rows||'<span style="font-size:9px;color:var(--tx3)">No goals</span>'}${addRow}${gbar}${tbar}</td>`;
     }
-    const ypct=catStat(DATA.tasks,ykeys(VY),c.id).pct,spct=catStat(DATA.tasks,smkeys(VY,VM<6?0:1),c.id).pct,qpct=catStat(DATA.tasks,qkeys(VY,qnum),c.id).pct,mpct=catStat(DATA.tasks,mkeys(VY,VM),c.id).pct;
     h+=`<tr style="border-top:1px solid var(--bd)">
       <td style="padding:8px 10px;color:${c.c};font-weight:700;white-space:nowrap;${bg}">${c.i} ${c.l}</td>
-      ${tcell(String(VY),ypct,true)}${tcell(skey,spct,false)}${tcell(qkey,qpct,false)}${tcell(mkey,mpct,false)}
+      ${tcell(String(VY),ypct,false)}
+      ${tcell(skey,spct,true)}
+      ${tcell(qkey,qpct,true)}
+      ${tcell(mkey,mpct,true)}
     </tr>`;
   });
   h+=`</tbody></table></div>`;
 
-  // WEEK GOALS
-  h+=`<div class="sl">WEEK GOALS</div>`;
+  // WEEK GOALS - tasks shown as circles, auto-mark when all tasks done
+  h+=`<div class="sl">WEEK GOALS (Mon → Sun)</div>`;
   wrs.forEach(({w,start,end})=>{
     const wkey=wk(VY,VM,w);
     const wdkeys=Array.from({length:end-start+1},(_,i)=>dk(VY,VM,start+i));
     const isNow=todayW&&todayW.w===w;
     const ws=stats(DATA.tasks,wdkeys);
-    h+=`<div style="margin-bottom:14px;${isNow?'border-left:3px solid var(--bl);padding-left:10px;margin-left:-4px':''}">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    h+=`<div style="margin-bottom:16px;${isNow?'border-left:3px solid var(--bl);padding-left:10px;margin-left:-10px':''}">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
       <span style="font-size:12px;font-weight:700;color:${isNow?'var(--bl)':'var(--tx2)'}">W${w} — ${MO[VM]} ${start}${start!==end?'–'+end:''}</span>
-      ${isNow?'<span style="font-size:9px;background:var(--bld);color:var(--bl);border-radius:4px;padding:1px 6px">This Week</span>':''}
+      ${isNow?'<span style="font-size:10px;background:var(--bld);color:var(--bl);border-radius:4px;padding:1px 6px">This Week</span>':''}
       ${pills(ws)}
-    </div><div class="gg">`;
+    </div>
+    <div class="gg">`;
     CATS.forEach(c=>{
-      const wo=getGO(wkey,c.id);
-      const wTasks=wdkeys.flatMap(dk2=>getDT(dk2).filter(t=>t.cat===c.id).map(t=>({...t,_dk:dk2})));
+      const wo=getGoalObj(wkey,c.id);
+      // Collect all tasks for this cat in the week
+      const wTasks=wdkeys.flatMap(dkey2=>{
+        const all=getDayTasks(dkey2).filter(t=>t.cat===c.id);
+        return all.map(t=>({...t,_dk:dkey2}));
+      });
+      // Auto-sync: if a task title matches a goal item, sync done state
+      wo.items.forEach((it,idx)=>{
+        const match=wTasks.find(t=>t.title===it.text);
+        if(match&&match.done!==it.done){it.done=match.done;}
+      });
       const wpct=catStat(DATA.tasks,wdkeys,c.id).pct;
+      const gd=wo.items.filter(i=>i.done).length,gt=wo.items.length;
+      const gpct=gt?Math.round(gd/gt*100):0;
+      const eid3='wi_'+wkey.replace(/[^a-z0-9]/gi,'_')+'_'+c.id;
+      // Task rows as circles
       let taskRows=wTasks.map(t=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
         <div onclick="toggleTask('${t._dk}','${t.id}')" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:2px solid ${c.c};background:${t.done?c.c:'transparent'};cursor:pointer"></div>
         <span style="font-size:10px;color:${t.done?'var(--tx3)':'var(--tx)'};text-decoration:${t.done?'line-through':'none'}">${t.title}${t.time?' ⏰'+t.time:''}</span>
         ${t.isRec?'<span style="font-size:8px;color:var(--bl)">🔁</span>':''}
       </div>`).join('');
+      // Extra manual goals
       let goalRows=wo.items.filter(it=>!wTasks.some(t=>t.title===it.text)).map((it,idx)=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
-        <div onclick="toggleGI('${wkey}','${c.id}',${idx})" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:1.5px dashed ${c.c};background:${it.done?c.c:'transparent'};cursor:pointer"></div>
-        <input value="${it.text.replace(/"/g,'&quot;')}" onblur="setGIT('${wkey}','${c.id}',${idx},this.value)" style="flex:1;font-size:10px;background:none;border:none;outline:none;color:${it.done?'var(--tx3)':'var(--tx)'};text-decoration:${it.done?'line-through':'none'}"/>
-        <button onclick="delGI('${wkey}','${c.id}',${idx})" style="font-size:9px;color:var(--tx3)">✕</button>
+        <div onclick="toggleGoalItem('${wkey}','${c.id}',${idx})" style="flex-shrink:0;width:11px;height:11px;border-radius:50%;border:1.5px dashed ${c.c};background:${it.done?c.c:'transparent'};cursor:pointer"></div>
+        <input value="${it.text.replace(/"/g,'&quot;')}" onblur="setGoalItemText('${wkey}','${c.id}',${idx},this.value)" style="flex:1;font-size:10px;color:${it.done?'var(--tx3)':'var(--tx)'};text-decoration:${it.done?'line-through':'none'};background:none;border:none;outline:none"/>
+        <button onclick="delGoalItem('${wkey}','${c.id}',${idx})" style="font-size:9px;color:var(--tx3)">✕</button>
       </div>`).join('');
-      const eid4='wi_'+wkey.replace(/[^a-z0-9]/gi,'_')+'_'+c.id;
       h+=`<div class="gc" style="border-left:2px solid ${c.c}">
         <div style="font-size:10px;font-weight:600;color:${c.c};margin-bottom:5px">${c.i} ${c.l}</div>
-        ${taskRows}${goalRows}
-        <input id="${eid4}" type="text" placeholder="+ goal, Enter" style="width:100%;font-size:10px;background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:3px 6px;margin-top:4px;color:var(--tx)" onkeydown="if(event.key==='Enter'&&this.value.trim()){addGIT('${wkey}','${c.id}',this.value.trim());this.value='';event.preventDefault();}"/>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:4px"><div style="flex:1;height:3px;background:var(--bd);border-radius:2px"><div style="height:3px;width:${wpct}%;background:${c.c};border-radius:2px"></div></div><span style="font-size:8px;color:var(--tx3)">${wpct}%</span></div>
+        ${taskRows||''}${goalRows||''}
+        <input id="${eid3}" type="text" placeholder="+ goal, Enter" style="width:100%;font-size:10px;color:var(--tx2);background:var(--sf2);border:1px solid var(--bd);border-radius:4px;padding:3px 6px;margin-top:4px" onkeydown="if(event.key==='Enter'&&this.value.trim()){addGoalItemText('${wkey}','${c.id}',this.value.trim());this.value='';}"/>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:4px">
+          <div style="flex:1;height:3px;background:var(--bd);border-radius:2px"><div style="height:3px;width:${wpct}%;background:${c.c};opacity:.5;border-radius:2px"></div></div>
+          <span style="font-size:8px;color:var(--tx3)">${wpct}% tasks</span>
+        </div>
       </div>`;
     });
     h+=`</div></div>`;
   });
 
-  // CALENDAR
-  h+=`<div class="sl" style="margin-top:6px">CALENDAR</div>
-  <div class="cw"><div class="ch">`;DH.forEach(d=>{h+=`<div>${d}</div>`;});h+=`</div><div class="cb">`;
+  // CALENDAR (Mon–Sun, week highlight, time shown)
+  h+=`<div class="sl" style="margin-top:8px">CALENDAR — click day to add tasks</div>
+  <div class="cw"><div class="ch">`;
+  DH.forEach(d=>{h+=`<div>${d}</div>`;});
+  h+=`</div><div class="cb">`;
   for(let e=0;e<fd;e++)h+=`<div class="cc emp"></div>`;
   for(let d=1;d<=days;d++){
-    const dk2=dk(VY,VM,d),dt=getDT(dk2),done=dt.filter(t=>t.done).length;
-    const isT=VY===TY&&VM===TM&&d===TD,isSel=SEL===d,hasMiss=dt.some(t=>!t.done&&!t.carried);
-    const inW=hlW&&d>=hlW.start&&d<=hlW.end;
+    const dk2=dk(VY,VM,d);const dt=getDayTasks(dk2);
+    const done=dt.filter(t=>t.done).length;
+    const isT=VY===TY&&VM===TM&&d===TD,isSel=SEL===d;
+    const hasMiss=dt.some(t=>!t.done&&!t.carried);
+    const inW=highlightW&&d>=highlightW.start&&d<=highlightW.end;
     const dots=CATS.filter(c=>dt.some(t=>t.cat===c.id)).map(c=>`<div class="dot" style="background:${c.c}"></div>`).join('');
-    const ft=(dt.find(t=>t.time)||{}).time;
+    const firstTime=(dt.find(t=>t.time)||{}).time;
     h+=`<div class="cc${isSel?' sel':isT?' tod':''} ${inW?'inw':''}" onclick="selDay(${d})">
       <div class="cdn${isT?' tdn':isSel?' sdn':''}">${d}</div>
       ${dt.length?`<div class="ctc" style="color:${hasMiss?'var(--rd)':'var(--gr)'}">${done}/${dt.length}</div>`:''}
-      ${ft?`<div class="ctm">⏰${ft}</div>`:''}
+      ${firstTime?`<div class="ctm">⏰${firstTime}</div>`:''}
       <div class="dots">${dots}</div>
     </div>`;
   }
-  const rem=(fd+days)%7?7-(fd+days)%7:0;for(let e=0;e<rem;e++)h+=`<div class="cc emp"></div>`;
+  const rem=(fd+days)%7?7-(fd+days)%7:0;
+  for(let e=0;e<rem;e++)h+=`<div class="cc emp"></div>`;
   h+=`</div></div>`;
 
   // DAY PANEL
   if(SEL){
     h+=`<div class="dp"><div class="dpt">
       <span>${MF[VM]} ${SEL}${selW?' — W'+selW.w:''}</span>
-      <button class="xb" onclick="openGcal()">📅 Google Cal</button>
+      <button class="gb" onclick="openGcal()">📅 Google Cal</button>
     </div>`;
-    if(!dayTasks.length)h+=`<div style="font-size:12px;color:var(--tx3);font-style:italic;padding:4px 0 8px">No tasks — add below.</div>`;
-    dayTasks.forEach(t=>{const cat=CATS.find(c=>c.id===t.cat)||{c:'var(--tx3)'};
-      const isEd=EDIT&&EDIT.dkey===dkey&&EDIT.id==t.id;
+    if(!dayTasks.length)h+=`<div class="nt2">No tasks — add below.</div>`;
+    dayTasks.forEach(t=>{
+      const cat=CATS.find(c=>c.id===t.cat)||{c:'var(--tx3)'};
+      const isEd=EDIT_T&&EDIT_T.dkey===dkey&&EDIT_T.id==t.id;
       if(isEd){
         const cOpts=CATS.map(c=>`<option value="${c.id}"${c.id===t.cat?' selected':''}>${c.i} ${c.l}</option>`).join('');
-        h+=`<div class="tr" style="flex-wrap:wrap;gap:5px;align-items:flex-start;padding:8px 0">
-          <select id="ecat" class="as" style="font-size:11px">${cOpts}</select>
-          <input id="et" class="ai" type="text" value="${t.title.replace(/"/g,'&quot;')}" style="flex:1;min-width:120px"/>
+        h+=`<div class="tr" style="flex-wrap:wrap;gap:5px;padding:8px 0">
+          <select id="ecat" class="as">${cOpts}</select>
+          <input id="et" class="ai" type="text" value="${t.title.replace(/"/g,'&quot;')}" style="min-width:120px"/>
           <input id="eti" class="at" type="time" value="${t.time||''}"/>
-          <button onclick="saveEdit('${dkey}','${t.id}')" class="ab" style="padding:4px 10px">✓</button>
-          <button onclick="cancelEdit()" class="xb">✕</button>
+          <button onclick="saveEditTask('${dkey}','${t.id}')" class="ab" style="padding:4px 10px">✓</button>
+          <button onclick="cancelEditTask()" style="font-size:11px;color:var(--tx2);border:1px solid var(--bd);border-radius:6px;padding:4px 8px;background:var(--sf2);cursor:pointer">✕</button>
         </div>`;
-      }else{
+      } else {
         h+=`<div class="tr">
           <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${dkey}','${t.id}')"/>
           <span class="tt${t.done?' done':''}">${t.title}</span>
           ${t.time?`<span class="tim">⏰${t.time}</span>`:''}
-          ${t.isRec?`<span class="rec">🔁</span>`:''}
+          ${t.isRec?`<span class="rec">🔁 daily</span>`:''}
           ${t.carried?`<span class="car">carried</span>`:''}
           <div class="tdot" style="background:${cat.c}"></div>
-          <button class="td" style="color:var(--bl);font-size:11px" onclick="startEdit('${dkey}','${t.id}')" title="Edit">✎</button>
+          ${!t.isRec?`<button class="td" style="color:var(--bl)" onclick="startEditTask('${dkey}','${t.id}')" title="Edit">✎</button>`:''}
           <button class="td" onclick="delTask('${dkey}','${t.id}')">✕</button>
         </div>`;
       }
     });
     const opts=CATS.map(c=>`<option value="${c.id}"${NT.cat===c.id?' selected':''}>${c.i} ${c.l}</option>`).join('');
     h+=`<div class="ar">
-      <select class="as" onchange="NT.cat=this.value">${opts}</select>
-      <input class="ai" type="text" placeholder="Task title…" value="${NT.title}" oninput="NT.title=this.value" onkeydown="if(event.key==='Enter')doAdd()"/>
       <input class="at" type="time" value="${NT.time}" oninput="NT.time=this.value"/>
       <button class="ab" onclick="doAdd()">+ Add</button>
     </div>
-    <div class="ar" style="margin-top:4px">
+    <div class="ar" style="margin-top:4px;align-items:center">
       <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2);cursor:pointer">
         <input type="checkbox" ${NT.recur?'checked':''} onchange="NT.recur=this.checked;document.getElementById('uw').style.display=this.checked?'flex':'none'" style="width:14px;height:14px"/>
         🔁 Recurring daily
-      </label>
-      <span id="uw" style="display:${NT.recur?'flex':'none'};align-items:center;gap:4px;font-size:11px;color:var(--tx2)">
-        Until: <input class="at" type="date" value="${NT.until}" oninput="NT.until=this.value" style="width:120px"/>
       </span>
     </div></div>`;
   }
+
   h+=`<div class="sl" style="margin-top:8px">MONTH SUMMARY</div>${sumBox(ms,mkeys(VY,VM))}</div>`;
   document.getElementById('R').innerHTML=h;
 }
+
 function goHome(){VIEW='home';SEL=null;render();}
 function goYear(y){VY=y;VIEW='year';SEL=null;render();}
 function goMonth(m){VM=m;VIEW='month';SEL=null;render();}
 function selDay(d){SEL=SEL===d?null:d;render();}
 function doAdd(){if(!NT.title.trim()||!SEL)return;addTask(dk(VY,VM,SEL),{cat:NT.cat,title:NT.title.trim(),time:NT.time,recur:NT.recur,until:NT.until});NT={cat:NT.cat,title:'',time:'',recur:false,until:''};}
-function openGcal(){if(!SEL)return;window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(MF[VM]+' '+SEL)}&dates=${VY}${P(VM+1)}${P(SEL)}/${VY}${P(VM+1)}${P(SEL+1)}&sf=true&output=xml`,'_blank');}
-// ─── INIT ────────────────────────────────────────────────────────
-if(localStorage.getItem('lft_theme')==='light'){document.body.classList.add('light');document.getElementById('themeBtn').textContent='🌙';}
-load();loadCats();render();renderAuthBar();
-if(isCfg()){_user=localStorage.getItem('lft_user')||'';loadFromDrive();}
+function openGcal(){if(!SEL)return;const url=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(MF[VM]+' '+SEL)}&dates=${VY}${P(VM+1)}${P(SEL)}/${VY}${P(VM+1)}${P(SEL+1)}&sf=true&output=xml`;window.open(url,'_blank');}
+// Load theme
+if(localStorage.getItem('lft_theme')==='light')document.body.classList.add('light');
+load();render();
+renderAuthBar();
+// Wait for the Google Identity Services script to finish loading, then
+// auto-reconnect if we have a stored session.
+waitForGis(()=>{tryAutoLogin();});
 </script>
 </body>
 </html>
