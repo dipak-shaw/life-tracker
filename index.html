@@ -1,5 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Life Tracker</title>
@@ -101,7 +99,6 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--gr);cursor:pointe
   </div>
   <div style="width:1px;height:16px;background:var(--bd)"></div>
   <!-- Tools -->
-  <button class="gbtn" onclick="showCatMgr()" title="Manage categories">⚙️</button>
   <button class="gbtn" onclick="exportData()" title="Export backup">⬇️</button>
   <button class="gbtn" onclick="importData()" title="Import backup">⬆️</button>
   <button class="gbtn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
@@ -233,7 +230,7 @@ async function loadFromDrive(){
       const hasLocal=Object.keys(DATA.tasks||{}).length>0||Object.keys(DATA.goals||{}).length>0||(DATA.recurring||[]).length>0;
       if(txt.trim()){
         const d=JSON.parse(txt);
-        DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};loadCats();
+        DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};
         save(false);
         setSyncStatus('ok','Synced '+new Date().toLocaleTimeString());
       } else if(hasLocal){
@@ -365,7 +362,7 @@ function waitForGis(cb,tries){
 }
 // ── END GOOGLE DRIVE SYNC ───────────────────────────────────────
 
-const DEFAULT_CATS=[
+const CATS=[
   {id:'personal',l:'Personal',i:'👤',c:'#a78bfa'},
   {id:'health',l:'Health',i:'💪',c:'#4ade80'},
   {id:'wealth',l:'Wealth',i:'💰',c:'#fbbf24'},
@@ -373,10 +370,6 @@ const DEFAULT_CATS=[
   {id:'branding',l:'Branding',i:'⭐',c:'#fb923c'},
   {id:'content',l:'Content',i:'✏️',c:'#f472b6'},
 ];
-let CATS=[...DEFAULT_CATS];
-const ICON_LIST=['👤','💪','💰','✈️','⭐','✏️','🏠','🏋️','📊','🎯','🔥','💡','🎓','🤝','🧠','📱','🛒','🎨','📚','💼','🏦','🌱','🎵','🍎'];
-const CLR_LIST=['#a78bfa','#4ade80','#fbbf24','#60a5fa','#fb923c','#f472b6','#34d399','#f87171','#818cf8','#38bdf8'];
-function loadCats(){CATS=(DATA.cats&&DATA.cats.length)?DATA.cats.map(c=>({...c})):[...DEFAULT_CATS];}
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MF=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DH=['Mo','Tu','We','Th','Fr','Sa','Su'];
@@ -418,7 +411,7 @@ let VIEW='home',VY=TY,VM=TM,SEL=null;
 let NT={cat:'health',title:'',time:'',recur:false,until:''};
 
 function save(syncDrive=true){try{localStorage.setItem(SK,JSON.stringify(DATA));}catch(e){}if(syncDrive)scheduleDriveSave();}
-function load(){try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};}}catch(e){}loadCats();}
+function load(){try{const r=localStorage.getItem(SK);if(r){const d=JSON.parse(r);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};}}catch(e){}}
 
 function getDayTasks(dkey){
   const reg=DATA.tasks[dkey]||[];
@@ -544,62 +537,7 @@ function toggleTheme(){
   if(btn)btn.textContent=light?'🌙':'☀️';
 }
 function exportData(){const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='life-tracker-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();}
-function importData(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};loadCats();save();render();alert('Imported successfully!');}catch(err){alert('Invalid file');}};r.readAsText(f);};inp.click();}
-// ── CATEGORY CRUD ──
-function showCatMgr(){
-  const rows=CATS.map((c,i)=>{
-    const ipk=ICON_LIST.map(ic=>`<span onclick="CATS[${i}].i='${ic}';document.getElementById('cico${i}').textContent='${ic}';this.parentNode.style.display='none'" style="cursor:pointer;font-size:16px;padding:2px">${ic}</span>`).join('');
-    return `<div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--bd)">
-      <div style="position:relative">
-        <span id="cico${i}" onclick="var p=document.getElementById('cpk${i}');p.style.display=p.style.display==='flex'?'none':'flex'" style="font-size:20px;cursor:pointer;padding:2px 6px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px">${c.i}</span>
-        <div id="cpk${i}" style="display:none;position:absolute;top:32px;left:0;background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:6px;z-index:20;flex-wrap:wrap;gap:2px;width:210px">${ipk}</div>
-      </div>
-      <input value="${c.l.replace(/"/g,'&quot;')}" onblur="CATS[${i}].l=this.value" style="flex:1;font-size:12px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;color:var(--tx)"/>
-      <input type="color" value="${c.c}" onchange="CATS[${i}].c=this.value" style="width:30px;height:28px;border:1px solid var(--bd);border-radius:5px;cursor:pointer;padding:1px;background:none"/>
-      <button onclick="if(confirm('Remove ${c.l.replace(/'/g,"\'")}?')){CATS.splice(${i},1);showCatMgr();}" style="font-size:11px;color:var(--rd);border:1px solid var(--rdd);background:var(--rdd);border-radius:5px;padding:3px 8px;cursor:pointer">✕</button>
-    </div>`;
-  }).join('');
-  const nc=CLR_LIST[CATS.length%CLR_LIST.length];
-  const nipk=ICON_LIST.map(ic=>`<span onclick="document.getElementById('nwi').textContent='${ic}';document.getElementById('nipk').style.display='none'" style="cursor:pointer;font-size:18px;padding:2px">${ic}</span>`).join('');
-  document.getElementById('R').innerHTML=`<div class="ai2">
-    <button class="bb" onclick="saveCatMgr()">← Save & Back</button>
-    <div class="tb"><div class="pt">Categories</div></div>
-    <div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px">
-      ${rows}
-      <div style="display:flex;align-items:center;gap:6px;padding-top:10px;flex-wrap:wrap">
-        <div style="position:relative">
-          <span id="nwi" onclick="document.getElementById('nipk').style.display=document.getElementById('nipk').style.display==='flex'?'none':'flex'" style="font-size:20px;cursor:pointer;padding:2px 6px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px">🎯</span>
-          <div id="nipk" style="display:none;position:absolute;top:32px;left:0;background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:8px;z-index:20;flex-wrap:wrap;gap:3px;width:220px">${nipk}</div>
-        </div>
-        <input id="nwn" type="text" placeholder="Category name…" style="flex:1;min-width:120px;font-size:12px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;color:var(--tx)" onkeydown="if(event.key==='Enter')addCat()"/>
-        <input id="nwc" type="color" value="${nc}" style="width:30px;height:28px;border:1px solid var(--bd);border-radius:5px;cursor:pointer;padding:1px;background:none"/>
-        <button onclick="addCat()" style="background:var(--gd);color:var(--gr);border:1px solid var(--gd);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer">+ Add</button>
-      </div>
-    </div>
-    <p style="font-size:11px;color:var(--tx3)">Click emoji to change icon. Removing a category keeps its existing data.</p>
-  </div>`;
-}
-function addCat(){
-  const i=document.getElementById('nwi').textContent.trim()||'🎯';
-  const l=document.getElementById('nwn').value.trim();
-  const c=document.getElementById('nwc').value;
-  if(!l)return;
-  CATS.push({id:l.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now(),l,i,c});
-  showCatMgr();
-}
-function saveCatMgr(){DATA.cats=CATS;save();render();}
-
-// ── TASK EDIT ──
-let EDIT_T=null;
-function startEditTask(dkey,id){EDIT_T={dkey,id};render();}
-function cancelEditTask(){EDIT_T=null;render();}
-function saveEditTask(dkey,id){
-  const t=document.getElementById('et').value.trim();if(!t)return;
-  const ti=document.getElementById('eti').value;
-  const cat=document.getElementById('ecat').value;
-  if(DATA.tasks[dkey])DATA.tasks[dkey]=DATA.tasks[dkey].map(tk=>tk.id==id?{...tk,title:t,time:ti,cat}:tk);
-  save();EDIT_T=null;render();
-}
+function importData(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);DATA={goals:{},tasks:{},recurring:[],recurDone:{},...d};save();render();alert('Imported successfully!');}catch(err){alert('Invalid file');}};r.readAsText(f);};inp.click();}
 function render(){if(VIEW==='home')renderHome();else if(VIEW==='year')renderYear();else if(VIEW==='month')renderMonth();}
 
 function renderHome(){
@@ -775,28 +713,15 @@ function renderYear(){
     if(!dayTasks.length)h+=`<div class="nt2">No tasks — add below.</div>`;
     dayTasks.forEach(t=>{
       const cat=CATS.find(c=>c.id===t.cat)||{c:'var(--tx3)'};
-      const isEd=EDIT_T&&EDIT_T.dkey===dkey&&EDIT_T.id==t.id;
-      if(isEd){
-        const cOpts=CATS.map(c=>`<option value="${c.id}"${c.id===t.cat?' selected':''}>${c.i} ${c.l}</option>`).join('');
-        h+=`<div class="tr" style="flex-wrap:wrap;gap:5px;padding:8px 0">
-          <select id="ecat" class="as">${cOpts}</select>
-          <input id="et" class="ai" type="text" value="${t.title.replace(/"/g,'&quot;')}" style="min-width:120px"/>
-          <input id="eti" class="at" type="time" value="${t.time||''}"/>
-          <button onclick="saveEditTask('${dkey}','${t.id}')" class="ab" style="padding:4px 10px">✓</button>
-          <button onclick="cancelEditTask()" style="font-size:11px;color:var(--tx2);border:1px solid var(--bd);border-radius:6px;padding:4px 8px;background:var(--sf2);cursor:pointer">✕</button>
-        </div>`;
-      } else {
-        h+=`<div class="tr">
-          <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${dkey}','${t.id}')"/>
-          <span class="tt${t.done?' done':''}">${t.title}</span>
-          ${t.time?`<span class="tim">⏰${t.time}</span>`:''}
-          ${t.isRec?`<span class="rec">🔁 daily</span>`:''}
-          ${t.carried?`<span class="car">carried</span>`:''}
-          <div class="tdot" style="background:${cat.c}"></div>
-          ${!t.isRec?`<button class="td" style="color:var(--bl)" onclick="startEditTask('${dkey}','${t.id}')" title="Edit">✎</button>`:''}          
-          <button class="td" onclick="delTask('${dkey}','${t.id}')">✕</button>
-        </div>`;
-      }
+      h+=`<div class="tr">
+        <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${dkey}','${t.id}')"/>
+        <span class="tt${t.done?' done':''}">${t.title}</span>
+        ${t.time?`<span class="tim">⏰${t.time}</span>`:''}
+        ${t.isRec?`<span class="rec">🔁 daily</span>`:''}
+        ${t.carried?`<span class="car">carried</span>`:''}
+        <div class="tdot" style="background:${cat.c}"></div>
+        <button class="td" onclick="delTask('${dkey}','${t.id}')">✕</button>
+      </div>`;
     });
     const opts=CATS.map(c=>`<option value="${c.id}"${NT.cat===c.id?' selected':''}>${c.i} ${c.l}</option>`).join('');
     h+=`<div class="ar">
